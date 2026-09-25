@@ -1,0 +1,46 @@
+model Model
+	culture: pt-BR
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: pt-BR
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+queryGroup 'Tabela Fato'
+
+	annotation PBI_QueryGroupOrder = 0
+
+queryGroup 'Tabelas Dimensão'
+
+	annotation PBI_QueryGroupOrder = 1
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_QueryOrder = ["F_atendimentos","F_planejamento","F_paradas","D_equipes","D_turnos"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table F_atendimentos
+ref table DateTableTemplate_01403326-3dce-4292-8266-994deea8be4e
+ref table LocalDateTable_50b6fbce-d17b-4da8-b6b5-5e3e45d814a0
+ref table LocalDateTable_e2a90a47-4a1c-4f9e-9e88-b9001e80cd6d
+ref table LocalDateTable_532f47df-6242-4b83-9f45-3887c6fd28e1
+ref table LocalDateTable_45080330-3627-4211-9541-a646c21dff2f
+ref table LocalDateTable_620c1273-2cb5-44d4-ab9f-ff82b0e520f2
+ref table D_equipes
+ref table D_turnos
+ref table F_planejamento
+ref table LocalDateTable_0a78c498-1628-46f8-9db8-fc9330abb3ba
+ref table LocalDateTable_554852ea-0197-49c6-af46-771ed2f73385
+ref table LocalDateTable_f67a65d6-cd02-414b-ade5-4f9d3b41ae94
+ref table LocalDateTable_7c9999d7-0ceb-472d-ba36-f18532e02874
+ref table LocalDateTable_d5d04429-32d2-4e9b-ab82-02d67f28029c
+ref table F_paradas
+ref table LocalDateTable_bd93bdec-d20b-4cae-ae49-1935819085b1
+ref table LocalDateTable_602b193b-9b4b-4d4e-8613-c81431b51fa4
+ref table LocalDateTable_b2239cc1-c61d-439d-bae3-d42093bb219a
+ref table LocalDateTable_71608ae9-add6-479f-ad91-f3b1ce82a2e3
+
+ref cultureInfo pt-BR
+

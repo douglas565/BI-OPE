@@ -1,0 +1,79 @@
+relationship f6b102ad-9953-434e-9e1c-b235c564566a
+	joinOnDateBehavior: datePartOnly
+	fromColumn: F_atendimentos.DATA_HORA_INICIO_ATENDIMENTO
+	toColumn: LocalDateTable_50b6fbce-d17b-4da8-b6b5-5e3e45d814a0.Date
+
+relationship ad23d74b-cd98-4b87-b267-ea4bc2f5eb3e
+	joinOnDateBehavior: datePartOnly
+	fromColumn: F_atendimentos.DATA_HORA_CONCLUSAO_ATENDIMENTO
+	toColumn: LocalDateTable_e2a90a47-4a1c-4f9e-9e88-b9001e80cd6d.Date
+
+relationship b845fde4-882c-4337-8f53-2294b4f13d67
+	joinOnDateBehavior: datePartOnly
+	fromColumn: F_atendimentos.DATA_INICIO_ATENDIMENTO
+	toColumn: LocalDateTable_532f47df-6242-4b83-9f45-3887c6fd28e1.Date
+
+relationship e01b6d18-ec67-425f-868d-9e59c11e7089
+	joinOnDateBehavior: datePartOnly
+	fromColumn: F_atendimentos.DATA_CONCLUSAO_ATENDIMENTO
+	toColumn: LocalDateTable_45080330-3627-4211-9541-a646c21dff2f.Date
+
+relationship b1559a71-1fa1-4d96-ad1f-d3d59d2d4708
+	joinOnDateBehavior: datePartOnly
+	fromColumn: F_atendimentos.DATA_ATENDIMENTO
+	toColumn: LocalDateTable_620c1273-2cb5-44d4-ab9f-ff82b0e520f2.Date
+
+relationship 67e0d32b-eaf0-5af5-a267-ca61ddedd053
+	crossFilteringBehavior: bothDirections
+	fromColumn: F_atendimentos.DESC_EQUIPE
+	toColumn: D_equipes.EQUIPES
+
+relationship 10574926-0756-46ab-999d-aa8b8499d050
+	joinOnDateBehavior: datePartOnly
+	fromColumn: F_planejamento.'Data de atuação'
+	toColumn: LocalDateTable_0a78c498-1628-46f8-9db8-fc9330abb3ba.Date
+
+relationship 3f9885cc-d686-425d-8352-489ed79bd338
+	joinOnDateBehavior: datePartOnly
+	fromColumn: F_planejamento.'Horário de saída da base'
+	toColumn: LocalDateTable_554852ea-0197-49c6-af46-771ed2f73385.Date
+
+relationship 766010ff-1508-473e-902f-467f66153264
+	joinOnDateBehavior: datePartOnly
+	fromColumn: F_planejamento.'Horário de chegada à base'
+	toColumn: LocalDateTable_f67a65d6-cd02-414b-ade5-4f9d3b41ae94.Date
+
+relationship ed83c01d-cd59-4e53-8166-4a150736169d
+	joinOnDateBehavior: datePartOnly
+	fromColumn: F_planejamento.Criado
+	toColumn: LocalDateTable_7c9999d7-0ceb-472d-ba36-f18532e02874.Date
+
+relationship 54b61270-d5c1-4dde-88ed-573791365643
+	joinOnDateBehavior: datePartOnly
+	fromColumn: F_planejamento.Modificado
+	toColumn: LocalDateTable_d5d04429-32d2-4e9b-ab82-02d67f28029c.Date
+
+relationship 5af4cb58-c809-47c4-bee4-3da277dd4f5a
+	joinOnDateBehavior: datePartOnly
+	fromColumn: F_paradas.'Início da parada'
+	toColumn: LocalDateTable_bd93bdec-d20b-4cae-ae49-1935819085b1.Date
+
+relationship 1df031b1-885d-458b-b19e-2a789d84e3f6
+	joinOnDateBehavior: datePartOnly
+	fromColumn: F_paradas.'Fim da parada'
+	toColumn: LocalDateTable_602b193b-9b4b-4d4e-8613-c81431b51fa4.Date
+
+relationship ee5949a8-6b73-4fd5-8dba-3454e97c485c
+	joinOnDateBehavior: datePartOnly
+	fromColumn: F_paradas.Criado
+	toColumn: LocalDateTable_b2239cc1-c61d-439d-bae3-d42093bb219a.Date
+
+relationship dc0b1635-7934-4a0e-8334-69f6eb481c38
+	joinOnDateBehavior: datePartOnly
+	fromColumn: F_paradas.Modificado
+	toColumn: LocalDateTable_71608ae9-add6-479f-ad91-f3b1ce82a2e3.Date
+
+relationship AutoDetected_730538fb-6b01-4839-8208-49cf17562cd8
+	fromColumn: F_planejamento.Turno
+	toColumn: D_turnos.TURNO
+
