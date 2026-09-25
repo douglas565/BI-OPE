@@ -15,8 +15,7 @@ table F_paradas
 		lineageTag: ed1b0ccc-ed55-472d-9152-a03dfc452ee8
 		summarizeBy: none
 		sourceColumn: Início da parada
-
-		variation Variation
+Variation
 			isDefault
 			relationship: 5af4cb58-c809-47c4-bee4-3da277dd4f5a
 			defaultHierarchy: LocalDateTable_bd93bdec-d20b-4cae-ae49-1935819085b1.'Hierarquia de datas'
@@ -29,8 +28,7 @@ table F_paradas
 		lineageTag: 4c9a6296-5312-4df2-b569-67e32e9d7628
 		summarizeBy: none
 		sourceColumn: Fim da parada
-
-		variation Variation
+Variation
 			isDefault
 			relationship: 1df031b1-885d-458b-b19e-2a789d84e3f6
 			defaultHierarchy: LocalDateTable_602b193b-9b4b-4d4e-8613-c81431b51fa4.'Hierarquia de datas'
@@ -67,8 +65,7 @@ table F_paradas
 		lineageTag: 0675a4df-408f-4ab6-8689-08edb7f91501
 		summarizeBy: none
 		sourceColumn: Criado
-
-		variation Variation
+Variation
 			isDefault
 			relationship: ee5949a8-6b73-4fd5-8dba-3454e97c485c
 			defaultHierarchy: LocalDateTable_b2239cc1-c61d-439d-bae3-d42093bb219a.'Hierarquia de datas'
@@ -130,8 +127,7 @@ table F_paradas
 		lineageTag: ae209471-0e1b-4bad-a14d-d8270fda6b6d
 		summarizeBy: none
 		sourceColumn: Modificado
-
-		variation Variation
+Variation
 			isDefault
 			relationship: dc0b1635-7934-4a0e-8334-69f6eb481c38
 			defaultHierarchy: LocalDateTable_71608ae9-add6-479f-ad91-f3b1ce82a2e3.'Hierarquia de datas'
