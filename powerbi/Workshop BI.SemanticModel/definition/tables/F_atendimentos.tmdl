@@ -445,13 +445,63 @@ table F_atendimentos
 
 		annotation SummarizationSetBy = Automatic
 
+	measure Realizados = CALCULATE( DISTINCTCOUNT(F_atendimentos[ID_ATENDIMENTO_PS]), F_atendimentos[EhEquipeCampo] = TRUE() )
+		formatString: 0
+		lineageTag: m1
+
+	measure Impossibilidades = CALCULATE([Realizados], D_Motivo[EhImpossibilidade] = TRUE())
+		formatString: 0
+		lineageTag: m2
+
+	measure Válidos = MAX(0, [Realizados] - [Impossibilidades])
+		formatString: 0
+		lineageTag: m3
+
+	measure 'Tempo Base Min' = SUMX( VALUES(F_atendimentos[ChaveEquipeDiaTurno]), CALCULATE(MAX(D_turnos[META DISPONIBILIDADE])) )
+		formatString: 0
+		lineageTag: m4
+
+	measure 'Paradas Min' = SUM(F_paradas[Tempo de parada])
+		formatString: 0
+		lineageTag: m5
+
+	measure 'Tempo Disponível Min' = MAX(0, [Tempo Base Min] - [Paradas Min])
+		formatString: 0
+		lineageTag: m6
+
+	measure 'Disponibilidade %' = DIVIDE([Tempo Disponível Min], [Tempo Base Min])
+		formatString: 0.0%
+		lineageTag: m7
+
+	measure 'Meta Tempo Min' = COALESCE(MAX(D_turnos[META PRODUTIVIDADE (hh)]), 23)
+		formatString: 0
+		lineageTag: m8
+
+	measure 'Tempo Necessário Min' = [Meta Tempo Min] * [Válidos]
+		formatString: 0
+		lineageTag: m9
+
+	measure 'Performance %' = DIVIDE([Tempo Necessário Min], [Tempo Disponível Min])
+		formatString: 0.0%
+		lineageTag: m10
+
+	measure 'Qualidade %' = DIVIDE([Válidos], [Realizados])
+		formatString: 0.0%
+		lineageTag: m11
+
+	measure 'OPE %' = [Disponibilidade %] * [Performance %] * [Qualidade %]
+		formatString: 0.0%
+		lineageTag: m12
+
+
+
 	partition F_atendimentos = m
 		mode: import
 		queryGroup: 'Tabela Fato'
 		source = ```
 				let
 				    User = "consulta.webservice",
-				    Pass = "@consult56324",
+				    Pass = "#REPLACESECRET#",
 				    URL_Login = "https://engiecuritiba.exati.com.br/guia/command/engiecuritiba?CMD.COMMAND=Login&CMD_username=" & User & "&CMD_password=" & Pass & "&parser=json",
 				    GetJsonLogin = Json.Document(Web.Contents(URL_Login)),
 				    ToTableLogin = Record.ToTable(GetJsonLogin),
@@ -469,9 +519,14 @@ table F_atendimentos
 				    #"Convertido para Tabela" = Table.FromList(PONTO_ATENDIDO, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
 				    #"Column1 Expandido" = Table.ExpandRecordColumn(#"Convertido para Tabela", "Column1", {"NUMERO_PROTOCOLO", "TOTAL_ATENDIMENTOS", "TOTAL_CONFIRMADOS", "TOTAL_DESCONFIRMADOS", "DIST", "ID_POSICAO_GEOGRAFICA_EQUIPE", "ID_ATENDIMENTO_PS", "ID_POSICAO_GEOGRAFICA_PONTO", "LATITUDE_TOTAL_PONTO", "LONGITUDE_TOTAL_PONTO", "LATITUDE_TOTAL_EQUIPE", "LONGITUDE_TOTAL_EQUIPE", "NUMERO_LOCAL_INICIAL", "ID_PARQUE_SERVICO", "ENDERECO_LIVRE", "NOME_BAIRRO", "NOME_MUNICIPIO", "DESC_TIPO_LOGRADOURO", "NOME_LOGRADOURO", "DESC_STATUS_ATENDIMENTO_PS", "DESC_MOTIVO_ATENDIMENTO_PS", "NOME_LOGRADOURO_COMPLETO", "ID_PONTO_SERVICO", "DESC_SOLUCAO_ATENDIMENTO_PS", "DATA_HORA_INICIO_ATENDIMENTO", "DATA_HORA_CONCLUSAO_ATENDIMENTO", "DATA_INICIO_ATENDIMENTO", "DATA_CONCLUSAO_ATENDIMENTO", "HORA_INICIO", "HORA_CONCLUSAO", "DATA_ATENDIMENTO", "ID_AUTENT_CONFIRMACAO", "ID_DOMINIO", "DESC_DOMINIO", "OBS", "DESC_PRIORIDADE_PONTO_OCORR", "DESC_EQUIPE", "EMPRESA_USUARIA_EQUIPE", "NOME_REGIAO", "NOME_PARQUE_SERVICO", "VEICULOS", "DESC_TIPO_OCORRENCIA", "NUMERO_IDENTIFICACAO", "ENDERECO"}, {"NUMERO_PROTOCOLO", "TOTAL_ATENDIMENTOS", "TOTAL_CONFIRMADOS", "TOTAL_DESCONFIRMADOS", "DIST", "ID_POSICAO_GEOGRAFICA_EQUIPE", "ID_ATENDIMENTO_PS", "ID_POSICAO_GEOGRAFICA_PONTO", "LATITUDE_TOTAL_PONTO", "LONGITUDE_TOTAL_PONTO", "LATITUDE_TOTAL_EQUIPE", "LONGITUDE_TOTAL_EQUIPE", "NUMERO_LOCAL_INICIAL", "ID_PARQUE_SERVICO", "ENDERECO_LIVRE", "NOME_BAIRRO", "NOME_MUNICIPIO", "DESC_TIPO_LOGRADOURO", "NOME_LOGRADOURO", "DESC_STATUS_ATENDIMENTO_PS", "DESC_MOTIVO_ATENDIMENTO_PS", "NOME_LOGRADOURO_COMPLETO", "ID_PONTO_SERVICO", "DESC_SOLUCAO_ATENDIMENTO_PS", "DATA_HORA_INICIO_ATENDIMENTO", "DATA_HORA_CONCLUSAO_ATENDIMENTO", "DATA_INICIO_ATENDIMENTO", "DATA_CONCLUSAO_ATENDIMENTO", "HORA_INICIO", "HORA_CONCLUSAO", "DATA_ATENDIMENTO", "ID_AUTENT_CONFIRMACAO", "ID_DOMINIO", "DESC_DOMINIO", "OBS", "DESC_PRIORIDADE_PONTO_OCORR", "DESC_EQUIPE", "EMPRESA_USUARIA_EQUIPE", "NOME_REGIAO", "NOME_PARQUE_SERVICO", "VEICULOS", "DESC_TIPO_OCORRENCIA", "NUMERO_IDENTIFICACAO", "ENDERECO"}),
 				    #"Tipo Alterado" = Table.TransformColumnTypes(#"Column1 Expandido",{{"DATA_HORA_INICIO_ATENDIMENTO", type datetime}, {"DATA_HORA_CONCLUSAO_ATENDIMENTO", type datetime}, {"DATA_INICIO_ATENDIMENTO", type date}, {"DATA_CONCLUSAO_ATENDIMENTO", type date}, {"HORA_INICIO", type time}, {"HORA_CONCLUSAO", type time}, {"DATA_ATENDIMENTO", type date}}),
-				    #"Linhas Filtradas" = Table.SelectRows(#"Tipo Alterado", each Text.Contains([DESC_EQUIPE], "Man-IP"))
-				in
-				    #"Linhas Filtradas"
+				    #"Linhas Filtradas" = Table.SelectRows(#"Tipo Alterado", each Text.Contains([DESC_EQUIPE], "Man-IP")),
+            DataOperacional = Table.AddColumn(#"Linhas Filtradas", "DataOperacional", each if Time.From([DATA_HORA_INICIO_ATENDIMENTO]) <= #time(6, 30, 0) then Date.AddDays(Date.From([DATA_HORA_INICIO_ATENDIMENTO]), -1) else Date.From([DATA_HORA_INICIO_ATENDIMENTO]), type date),
+            EquipeNormalizada = Table.AddColumn(DataOperacional, "EquipeNormalizada", each Text.Trim(Text.Replace([DESC_EQUIPE], " | ENGIE", "")), type text),
+            EhEquipeCampo = Table.AddColumn(EquipeNormalizada, "EhEquipeCampo", each not Text.Contains([EquipeNormalizada], "CCO", Combiner.OrdinalIgnoreCase), type logical),
+            DuracaoExecucaoMin = Table.AddColumn(EhEquipeCampo, "DuracaoExecucaoMin", each if [DATA_HORA_CONCLUSAO_ATENDIMENTO] <> null and [DATA_HORA_CONCLUSAO_ATENDIMENTO] >= [DATA_HORA_INICIO_ATENDIMENTO] then Duration.TotalMinutes([DATA_HORA_CONCLUSAO_ATENDIMENTO] - [DATA_HORA_INICIO_ATENDIMENTO]) else null, type number),
+            ExtraTurnoTemp = Table.AddColumn(DuracaoExecucaoMin, "TurnoTemp", each "T1", type text),
+            ChaveEquipeDiaTurno = Table.AddColumn(ExtraTurnoTemp, "ChaveEquipeDiaTurno", each [EquipeNormalizada] & "|" & Date.ToText([DataOperacional], "yyyy-MM-dd") & "|" & [TurnoTemp], type text)				in
+				    ChaveEquipeDiaTurno
 				```
 
 	annotation PBI_NavigationStepName = Navegação
