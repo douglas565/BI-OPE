@@ -1,0 +1,11 @@
+relationship rel_equipe_atendimento
+	fromColumn: F_atendimentos.DESC_EQUIPE
+	toColumn: D_equipes.EQUIPES
+
+relationship rel_calendario_atendimento
+	fromColumn: F_atendimentos.DATA_ATENDIMENTO
+	toColumn: D_Calendario.Date
+
+relationship rel_motivo_atendimento
+	fromColumn: F_atendimentos.DESC_MOTIVO_ATENDIMENTO_PS
+	toColumn: D_Motivo.MotivoOriginal

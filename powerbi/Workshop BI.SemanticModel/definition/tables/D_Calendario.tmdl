@@ -1,0 +1,15 @@
+table D_Calendario
+	lineageTag: 2d14ebd5-3c1c-43f1-b1e0-6a7bd6a5cc01
+	dataCategory: Time
+
+	column Date
+		dataType: dateTime
+		isKey: true
+		formatString: Short Date
+		lineageTag: 2d14ebd5-3c1c-43f1-b1e0-6a7bd6a5cc02
+		summarizeBy: none
+		sourceColumn: Date
+
+	partition D_Calendario = calculated
+		mode: import
+		source = CALENDAR(DATE(2025, 1, 1), DATE(2027, 12, 31))

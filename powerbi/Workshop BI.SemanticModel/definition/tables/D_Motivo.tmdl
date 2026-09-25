@@ -1,0 +1,34 @@
+table D_Motivo
+	lineageTag: 3d14ebd5-3c1c-43f1-b1e0-6a7bd6a5cc03
+
+	column MotivoOriginal
+		dataType: string
+		lineageTag: 3d14ebd5-3c1c-43f1-b1e0-6a7bd6a5cc04
+		summarizeBy: none
+		sourceColumn: MotivoOriginal
+
+	column MotivoNormalizado
+		dataType: string
+		lineageTag: 3d14ebd5-3c1c-43f1-b1e0-6a7bd6a5cc05
+		summarizeBy: none
+		sourceColumn: MotivoNormalizado
+
+	column EhImpossibilidade
+		dataType: boolean
+		lineageTag: 3d14ebd5-3c1c-43f1-b1e0-6a7bd6a5cc06
+		summarizeBy: none
+		sourceColumn: EhImpossibilidade
+
+	partition D_Motivo = m
+		mode: import
+		queryGroup: 'Tabelas Dimensão'
+		source = ```
+			let
+			    Fonte = F_atendimentos,
+			    MotivosUnicos = Table.Distinct(Table.SelectColumns(Fonte,{"DESC_MOTIVO_ATENDIMENTO_PS"})),
+			    Renomeados = Table.RenameColumns(MotivosUnicos,{{"DESC_MOTIVO_ATENDIMENTO_PS", "MotivoOriginal"}}),
+			    Normalizado = Table.AddColumn(Renomeados, "MotivoNormalizado", each Text.Trim(Text.Upper([MotivoOriginal]))),
+			    Impossibilidade = Table.AddColumn(Normalizado, "EhImpossibilidade", each if [MotivoOriginal] = "Sem Material" or [MotivoOriginal] = "Chuva" then true else false, type logical)
+			in
+			    Impossibilidade
+			```
