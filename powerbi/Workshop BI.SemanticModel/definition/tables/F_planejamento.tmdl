@@ -25,10 +25,6 @@ table F_planejamento
 		lineageTag: 287bb0a3-8b02-4632-852a-3533868b4f7d
 		summarizeBy: none
 		sourceColumn: Data de atuação
-Variation
-			isDefault
-			relationship: 10574926-0756-46ab-999d-aa8b8499d050
-			defaultHierarchy: LocalDateTable_0a78c498-1628-46f8-9db8-fc9330abb3ba.'Hierarquia de datas'
 
 		annotation SummarizationSetBy = Automatic
 
@@ -70,10 +66,6 @@ Variation
 		lineageTag: 11645992-9a93-4658-8a3e-33242e1d3a61
 		summarizeBy: none
 		sourceColumn: Horário de saída da base
-Variation
-			isDefault
-			relationship: 3f9885cc-d686-425d-8352-489ed79bd338
-			defaultHierarchy: LocalDateTable_554852ea-0197-49c6-af46-771ed2f73385.'Hierarquia de datas'
 
 		annotation SummarizationSetBy = Automatic
 
@@ -83,10 +75,6 @@ Variation
 		lineageTag: 4a5d776f-ec58-4b9c-8680-0f3e893070a2
 		summarizeBy: none
 		sourceColumn: Horário de chegada à base
-Variation
-			isDefault
-			relationship: 766010ff-1508-473e-902f-467f66153264
-			defaultHierarchy: LocalDateTable_f67a65d6-cd02-414b-ade5-4f9d3b41ae94.'Hierarquia de datas'
 
 		annotation SummarizationSetBy = Automatic
 
@@ -96,10 +84,6 @@ Variation
 		lineageTag: d4b78506-d82b-4b37-99cd-cb438d51d3d2
 		summarizeBy: none
 		sourceColumn: Criado
-Variation
-			isDefault
-			relationship: ed83c01d-cd59-4e53-8166-4a150736169d
-			defaultHierarchy: LocalDateTable_7c9999d7-0ceb-472d-ba36-f18532e02874.'Hierarquia de datas'
 
 		annotation SummarizationSetBy = Automatic
 
@@ -117,10 +101,6 @@ Variation
 		lineageTag: ad1842be-663a-4b0b-ae47-c08062f769a2
 		summarizeBy: none
 		sourceColumn: Modificado
-Variation
-			isDefault
-			relationship: 54b61270-d5c1-4dde-88ed-573791365643
-			defaultHierarchy: LocalDateTable_d5d04429-32d2-4e9b-ab82-02d67f28029c.'Hierarquia de datas'
 
 		annotation SummarizationSetBy = Automatic
 

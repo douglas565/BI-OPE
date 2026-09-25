@@ -249,10 +249,6 @@ table F_atendimentos
 		lineageTag: 2ad541b1-6b95-419d-bb66-dd8c8c516337
 		summarizeBy: none
 		sourceColumn: DATA_HORA_INICIO_ATENDIMENTO
-Variation
-			isDefault
-			relationship: f6b102ad-9953-434e-9e1c-b235c564566a
-			defaultHierarchy: LocalDateTable_50b6fbce-d17b-4da8-b6b5-5e3e45d814a0.'Hierarquia de datas'
 
 		annotation SummarizationSetBy = Automatic
 
@@ -262,10 +258,6 @@ Variation
 		lineageTag: 49502c1a-057f-4306-af57-a94de6ec7a09
 		summarizeBy: none
 		sourceColumn: DATA_HORA_CONCLUSAO_ATENDIMENTO
-Variation
-			isDefault
-			relationship: ad23d74b-cd98-4b87-b267-ea4bc2f5eb3e
-			defaultHierarchy: LocalDateTable_e2a90a47-4a1c-4f9e-9e88-b9001e80cd6d.'Hierarquia de datas'
 
 		annotation SummarizationSetBy = Automatic
 
@@ -275,10 +267,6 @@ Variation
 		lineageTag: 7309cfe5-8f99-499e-9861-415b57529cd6
 		summarizeBy: none
 		sourceColumn: DATA_INICIO_ATENDIMENTO
-Variation
-			isDefault
-			relationship: b845fde4-882c-4337-8f53-2294b4f13d67
-			defaultHierarchy: LocalDateTable_532f47df-6242-4b83-9f45-3887c6fd28e1.'Hierarquia de datas'
 
 		annotation SummarizationSetBy = Automatic
 
@@ -290,10 +278,6 @@ Variation
 		lineageTag: 3503ca47-c47a-489e-b9ca-b3717eb4f7f5
 		summarizeBy: none
 		sourceColumn: DATA_CONCLUSAO_ATENDIMENTO
-Variation
-			isDefault
-			relationship: e01b6d18-ec67-425f-868d-9e59c11e7089
-			defaultHierarchy: LocalDateTable_45080330-3627-4211-9541-a646c21dff2f.'Hierarquia de datas'
 
 		annotation SummarizationSetBy = Automatic
 
@@ -327,10 +311,6 @@ Variation
 		lineageTag: 844e578c-8bc5-4158-a52e-859024c7a032
 		summarizeBy: none
 		sourceColumn: DATA_ATENDIMENTO
-Variation
-			isDefault
-			relationship: b1559a71-1fa1-4d96-ad1f-d3d59d2d4708
-			defaultHierarchy: LocalDateTable_620c1273-2cb5-44d4-ab9f-ff82b0e520f2.'Hierarquia de datas'
 
 		annotation SummarizationSetBy = Automatic
 
