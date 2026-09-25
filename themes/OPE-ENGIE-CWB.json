@@ -1,0 +1,37 @@
+{
+  "name": "OPE ENGIE CWB",
+  "dataColors": [
+    "#10205e",
+    "#00AAFF",
+    "#009B8D",
+    "#7B52AB",
+    "#18a558",
+    "#e8a11c",
+    "#d9453d",
+    "#8a91a4"
+  ],
+  "background": "#f4f6fb",
+  "foreground": "#1d2333",
+  "tableAccent": "#10205e",
+  "visualStyles": {
+    "page": {
+      "*": {
+        "background": [
+          {
+            "color": { "solid": { "color": "#f4f6fb" } },
+            "transparency": 0
+          }
+        ]
+      }
+    },
+    "*": {
+      "*": {
+        "*": [
+          {
+            "fontFamily": "Segoe UI, Roboto, Arial, sans-serif"
+          }
+        ]
+      }
+    }
+  }
+}

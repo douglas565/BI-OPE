@@ -493,6 +493,24 @@ table F_atendimentos
 		formatString: 0.0%
 		lineageTag: m12
 
+	measure 'Disponibilidade (Limitada) %' = IF([Disponibilidade %] > 1, 1, [Disponibilidade %])
+		formatString: 0.0%
+		lineageTag: m13
+
+	measure 'Performance (Limitada) %' = IF([Performance %] > 1, 1, [Performance %])
+		formatString: 0.0%
+		lineageTag: m14
+
+	measure 'Qualidade (Limitada) %' = IF([Qualidade %] > 1, 1, [Qualidade %])
+		formatString: 0.0%
+		lineageTag: m15
+
+	measure 'OPE (Limitado) %' = [Disponibilidade (Limitada) %] * [Performance (Limitada) %] * [Qualidade (Limitada) %]
+		formatString: 0.0%
+		lineageTag: m16
+
+
+
 
 
 	partition F_atendimentos = m
