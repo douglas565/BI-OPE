@@ -77,6 +77,13 @@ for tf in tmdl_all:
             fail("%s:%d indentacao mista (use abas)" % (tf.name, i))
 ok("indentacao dos TMDL por abas")
 
+# 2b) annotations em arquivos de tabela devem estar indentadas (filhas da tabela)
+for tf in sorted((DEF / "tables").glob("*.tmdl")):
+    for i, ln in enumerate(open(tf, encoding="utf-8").read().split("\n"), 1):
+        if re.match(r"^annotation\b", ln):
+            fail("%s:%d annotation em coluna 0 (deve ser filha da tabela)" % (tf.name, i))
+ok("annotations de tabela indentadas")
+
 # 3) tabelas/colunas/medidas
 tables, measures = {}, {}
 for tf in sorted((DEF / "tables").glob("*.tmdl")):

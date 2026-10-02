@@ -539,9 +539,9 @@ table F_atendimentos
 		queryGroup: 'Tabela Fato'
 		source = ```
 				let
-				    // ATENCAO: substitua #REPLACESECRET# pela senha do usuario de consulta (ver README)
+				    // credenciais do usuario de consulta — decisao do projeto: manter inline
 				    User = "consulta.webservice",
-				    Pass = "#REPLACESECRET#",
+				    Pass = "@consult56324",
 				    URL_Login = "https://engiecuritiba.exati.com.br/guia/command/engiecuritiba?CMD.COMMAND=Login&CMD_username=" & User & "&CMD_password=" & Pass & "&parser=json",
 				    GetJsonLogin = Json.Document(Web.Contents(URL_Login)),
 				    ToTableLogin = Record.ToTable(GetJsonLogin),
@@ -572,6 +572,6 @@ table F_atendimentos
 				    SemAuxiliares
 				```
 
-annotation PBI_NavigationStepName = Navegação
+	annotation PBI_NavigationStepName = Navegação
 
-annotation PBI_ResultType = Table
+	annotation PBI_ResultType = Table
