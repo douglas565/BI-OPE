@@ -49,7 +49,7 @@ Criadas/atualizadas 5 abas no relatório:
 ## Correções 2026-10-02 (pós-teste no Desktop)
 
 - **Medidas DAX:** referências entre medidas estavam com apóstrofo (`['Nome']`) — inválido no DAX e causa dos erros "Missing_References / campos que precisam ser corrigidos". Todas as 11 medidas foram corrigidas para `[Nome]`. Validador agora rejeita esse padrão.
-- **Consulta Exati (`F_atendimentos`):** a URL é montada com `[Query = [...]]` (encoding garantido dos parâmetros); **retry automático**: até 4 tentativas com re-login e esperas de 15/30/45 s. Causa raiz dos bloqueios no refresh: **ATD-BUS-0012** — a API aceita **uma única execução por usuário** e o refresh do Desktop dispara avaliações paralelas (pré-visualização + carga; fato + dimensões), que colidiam. O retry com espera resolve (a execução vencedora termina e a tentativa seguinte passa). Janela de dados: `DATA_INICIO` em `Parametros` (hoje `01/06/2026`).
+- **Consulta Exati (`F_atendimentos`):** URL montada com `[Query = [...]]`; **retry robusto**: até 6 tentativas com re-login e esperas de 20/40/60/80/100 s (~5 min), com **`IsRetry = true`** em cada chamada (o Power Query cacheia respostas por URL — sem isso, tentativas repetidas podiam ler a resposta antiga do cache sem consultar o servidor) e **timeout de 5 min** para o download (junho ≈ 24 MB). Causa raiz dos bloqueios no refresh: **ATD-BUS-0012** — a API aceita **uma única execução por usuário** e o refresh do Desktop dispara avaliações paralelas (pré-visualização + carga; fato + dimensões), que colidem. Janela de dados: `DATA_INICIO` em `Parametros` (hoje `01/06/2026`).
 
 ## Pendências
 - Recorte de paradas à janela do turno; rateio da meta entre turnos; parâmetros para caminhos/credenciais.

@@ -546,17 +546,17 @@ table F_atendimentos
 				    RelativeURL = "/guia/command/engiecuritiba/relatoriosHouer.json",
 				    // janela de dados da consulta (ajustavel: DATA_INICIO)
 				    Parametros = "{""OPCAO"":""4"",""PAGE"":0,""PAGE_SIZE"":0,""DATA_INICIO"":""01/06/2026""}",
-				    // Busca: re-login por tentativa; ate 4 tentativas com espera (API aceita 1 execucao por vez — ATD-BUS-0012)
+				    // Busca: re-login e bypass de cache (IsRetry) por tentativa; ate 6 tentativas com espera (lock ATD-BUS-0012)
 				    Busca = (tentativa) =>
 				        let
 				            Tenta = try
 				                (
 				                    let
-				                        GetJsonLogin = Json.Document(Web.Contents(URL_Login)),
+				                        GetJsonLogin = Json.Document(Web.Contents(URL_Login, [IsRetry = true])),
 				                        ToTableLogin = Record.ToTable(GetJsonLogin),
 				                        ExpandToken = Table.ExpandRecordColumn(ToTableLogin, "Value", {"AUTH_TOKEN"}, {"AUTH_TOKEN"}),
 				                        AuthToken = List.Last(Record.FieldValues(ExpandToken{0})),
-				                        Conteudo = Web.Contents("https://engiecuritiba.exati.com.br", [RelativePath = RelativeURL, Query = [CMD_SCRIPT_PARAMETERS = Parametros, auth_token = AuthToken]]),
+				                        Conteudo = Web.Contents("https://engiecuritiba.exati.com.br", [RelativePath = RelativeURL, Query = [CMD_SCRIPT_PARAMETERS = Parametros, auth_token = AuthToken], IsRetry = true, Timeout = #duration(0, 0, 5, 0)]),
 				                        Json = Json.Document(Conteudo),
 				                        Raiz = if Record.HasFields(Json, "RAIZ") then Json[RAIZ] else error ("Resposta da API Exati sem RAIZ. Conteudo: " & Text.FromBinary(Json.FromValue(Json))),
 				                        Pontos = if Record.HasFields(Raiz, "PONTOS_ATENDIDOS") then Raiz[PONTOS_ATENDIDOS] else error ("Resposta da API Exati sem PONTOS_ATENDIDOS. Conteudo: " & Text.FromBinary(Json.FromValue(Json))),
@@ -565,10 +565,10 @@ table F_atendimentos
 				                        Lista
 				                )
 				        in
-				            if Tenta[HasError] and tentativa < 4 then Function.InvokeAfter(() => @Busca(tentativa + 1), #duration(0, 0, 0, 15 * tentativa)) else Tenta,
+				            if Tenta[HasError] and tentativa < 6 then Function.InvokeAfter(() => @Busca(tentativa + 1), #duration(0, 0, 0, 20 * tentativa)) else Tenta,
 				    Bruto = Busca(1),
 				    Detalhe = if Bruto[HasError] then (try Text.From(Bruto[Error][Message]) otherwise "(sem detalhes)") else "",
-				    PONTO_ATENDIDO = if Bruto[HasError] then error ("Falha na API Exati apos 4 tentativas. Detalhe: " & Detalhe) else Bruto[Value],
+				    PONTO_ATENDIDO = if Bruto[HasError] then error ("Falha na API Exati apos 6 tentativas. Detalhe: " & Detalhe) else Bruto[Value],
 				    #"Convertido para Tabela" = Table.FromList(PONTO_ATENDIDO, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
 				    #"Column1 Expandido" = Table.ExpandRecordColumn(#"Convertido para Tabela", "Column1", {"NUMERO_PROTOCOLO", "TOTAL_ATENDIMENTOS", "TOTAL_CONFIRMADOS", "TOTAL_DESCONFIRMADOS", "DIST", "ID_POSICAO_GEOGRAFICA_EQUIPE", "ID_ATENDIMENTO_PS", "ID_POSICAO_GEOGRAFICA_PONTO", "LATITUDE_TOTAL_PONTO", "LONGITUDE_TOTAL_PONTO", "LATITUDE_TOTAL_EQUIPE", "LONGITUDE_TOTAL_EQUIPE", "NUMERO_LOCAL_INICIAL", "ID_PARQUE_SERVICO", "ENDERECO_LIVRE", "NOME_BAIRRO", "NOME_MUNICIPIO", "DESC_TIPO_LOGRADOURO", "NOME_LOGRADOURO", "DESC_STATUS_ATENDIMENTO_PS", "DESC_MOTIVO_ATENDIMENTO_PS", "NOME_LOGRADOURO_COMPLETO", "ID_PONTO_SERVICO", "DESC_SOLUCAO_ATENDIMENTO_PS", "DATA_HORA_INICIO_ATENDIMENTO", "DATA_HORA_CONCLUSAO_ATENDIMENTO", "DATA_INICIO_ATENDIMENTO", "DATA_CONCLUSAO_ATENDIMENTO", "HORA_INICIO", "HORA_CONCLUSAO", "DATA_ATENDIMENTO", "ID_AUTENT_CONFIRMACAO", "ID_DOMINIO", "DESC_DOMINIO", "OBS", "DESC_PRIORIDADE_PONTO_OCORR", "DESC_EQUIPE", "EMPRESA_USUARIA_EQUIPE", "NOME_REGIAO", "NOME_PARQUE_SERVICO", "VEICULOS", "DESC_TIPO_OCORRENCIA", "NUMERO_IDENTIFICACAO", "ENDERECO"}, {"NUMERO_PROTOCOLO", "TOTAL_ATENDIMENTOS", "TOTAL_CONFIRMADOS", "TOTAL_DESCONFIRMADOS", "DIST", "ID_POSICAO_GEOGRAFICA_EQUIPE", "ID_ATENDIMENTO_PS", "ID_POSICAO_GEOGRAFICA_PONTO", "LATITUDE_TOTAL_PONTO", "LONGITUDE_TOTAL_PONTO", "LATITUDE_TOTAL_EQUIPE", "LONGITUDE_TOTAL_EQUIPE", "NUMERO_LOCAL_INICIAL", "ID_PARQUE_SERVICO", "ENDERECO_LIVRE", "NOME_BAIRRO", "NOME_MUNICIPIO", "DESC_TIPO_LOGRADOURO", "NOME_LOGRADOURO", "DESC_STATUS_ATENDIMENTO_PS", "DESC_MOTIVO_ATENDIMENTO_PS", "NOME_LOGRADOURO_COMPLETO", "ID_PONTO_SERVICO", "DESC_SOLUCAO_ATENDIMENTO_PS", "DATA_HORA_INICIO_ATENDIMENTO", "DATA_HORA_CONCLUSAO_ATENDIMENTO", "DATA_INICIO_ATENDIMENTO", "DATA_CONCLUSAO_ATENDIMENTO", "HORA_INICIO", "HORA_CONCLUSAO", "DATA_ATENDIMENTO", "ID_AUTENT_CONFIRMACAO", "ID_DOMINIO", "DESC_DOMINIO", "OBS", "DESC_PRIORIDADE_PONTO_OCORR", "DESC_EQUIPE", "EMPRESA_USUARIA_EQUIPE", "NOME_REGIAO", "NOME_PARQUE_SERVICO", "VEICULOS", "DESC_TIPO_OCORRENCIA", "NUMERO_IDENTIFICACAO", "ENDERECO"}),
 				    #"Tipo Alterado" = Table.TransformColumnTypes(#"Column1 Expandido", {{"DATA_HORA_INICIO_ATENDIMENTO", type datetime}, {"DATA_HORA_CONCLUSAO_ATENDIMENTO", type datetime}, {"DATA_INICIO_ATENDIMENTO", type date}, {"DATA_CONCLUSAO_ATENDIMENTO", type date}, {"HORA_INICIO", type time}, {"HORA_CONCLUSAO", type time}, {"DATA_ATENDIMENTO", type date}}),
