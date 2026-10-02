@@ -7,11 +7,15 @@ table D_Motivo
 		summarizeBy: none
 		sourceColumn: MotivoOriginal
 
+		annotation SummarizationSetBy = Automatic
+
 	column MotivoNormalizado
 		dataType: string
 		lineageTag: 3d14ebd5-3c1c-43f1-b1e0-6a7bd6a5cc05
 		summarizeBy: none
 		sourceColumn: MotivoNormalizado
+
+		annotation SummarizationSetBy = Automatic
 
 	column EhImpossibilidade
 		dataType: boolean
@@ -19,16 +23,21 @@ table D_Motivo
 		summarizeBy: none
 		sourceColumn: EhImpossibilidade
 
+		annotation SummarizationSetBy = Automatic
+
 	partition D_Motivo = m
 		mode: import
 		queryGroup: 'Tabelas Dimensão'
 		source = ```
-			let
-			    Fonte = F_atendimentos,
-			    MotivosUnicos = Table.Distinct(Table.SelectColumns(Fonte,{"DESC_MOTIVO_ATENDIMENTO_PS"})),
-			    Renomeados = Table.RenameColumns(MotivosUnicos,{{"DESC_MOTIVO_ATENDIMENTO_PS", "MotivoOriginal"}}),
-			    Normalizado = Table.AddColumn(Renomeados, "MotivoNormalizado", each Text.Trim(Text.Upper([MotivoOriginal]))),
-			    Impossibilidade = Table.AddColumn(Normalizado, "EhImpossibilidade", each if [MotivoOriginal] = "Sem Material" or [MotivoOriginal] = "Chuva" then true else false, type logical)
-			in
-			    Impossibilidade
-			```
+				let
+				    Fonte = Table.SelectColumns(F_atendimentos, {"DESC_MOTIVO_ATENDIMENTO_PS", "EhImpossibilidade"}),
+				    Agrupado = Table.Group(Fonte, {"DESC_MOTIVO_ATENDIMENTO_PS"}, {{"EhImpossibilidade", each List.Contains([EhImpossibilidade], true), type logical}}),
+				    Renomeadas = Table.RenameColumns(Agrupado, {{"DESC_MOTIVO_ATENDIMENTO_PS", "MotivoOriginal"}}),
+				    Normalizado = Table.AddColumn(Renomeadas, "MotivoNormalizado", each Text.Trim(Text.Upper(if [MotivoOriginal] = null then "" else [MotivoOriginal])), type text)
+				in
+				    Normalizado
+				```
+
+annotation PBI_ResultType = Table
+
+annotation PBI_NavigationStepName = Navegação

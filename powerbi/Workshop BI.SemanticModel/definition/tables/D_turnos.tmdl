@@ -160,32 +160,49 @@ table D_turnos
 
 		annotation SummarizationSetBy = Automatic
 
+	column 'META DISPONIBILIDADE MIN'
+		dataType: double
+		formatString: 0
+		lineageTag: c49818ca-6a69-4068-b085-950a4b8bd610
+		summarizeBy: none
+		sourceColumn: META DISPONIBILIDADE MIN
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'META PRODUTIVIDADE MIN'
+		dataType: double
+		formatString: 0
+		lineageTag: 265bdbd3-7ba3-4184-b555-1ae2c049bfd5
+		summarizeBy: none
+		sourceColumn: META PRODUTIVIDADE MIN
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
 	partition D_turnos = m
 		mode: import
 		queryGroup: 'Tabelas Dimensão'
-		source =
+		source = ```
 				let
-				    Fonte = Excel.Workbook(File.Contents("C:\Users\QG6289\ENGIE\Cidades - Soluções - Documentos\03. Planejamento e Controle\Indicadores\8. Operacional\Projeto OP3RA\HORÁRIOS.xlsx"), null, true),
-				    TURNOS_Table = Fonte{[Item="TURNOS",Kind="Table"]}[Data],
-				    #"Tipo Alterado" = Table.TransformColumnTypes(TURNOS_Table,{{"ANO", Int64.Type}, {"MÊS", type text}, {"TURNO", type text}, {"HORA INÍCIO", type time}, {"HORA FIM", type time}, {"TEMPO MOBILIZAÇÃO (min)", type time}, {"TEMPO DESMOBILIZAÇÃO (min)", type time}, {"TEMPO DESLOCAMENTO (min)", type time}, {"TEMPO INTERVALO (min)", type time}, {"TEMPO TOTAL PREVISTO", type time}, {"META DISPONIBILIDADE", type time}, {"META PRODUÇÃO", Int64.Type}, {"META PRODUTIVIDADE (hh)", type time}}),
-				    #"Personalização Adicionada" = Table.AddColumn(#"Tipo Alterado", "Tempo total do turno", each if [HORA INÍCIO] = null or [HORA FIM] = null then null
-				  else if [HORA FIM] >= [HORA INÍCIO]
-				       then [HORA FIM] - [HORA INÍCIO]
-				       else ( [HORA FIM] - [HORA INÍCIO] ) + #duration(1,0,0,0)),
-				    #"Horas Totais Inseridas" = Table.AddColumn(#"Personalização Adicionada", "Total de Horas", each Duration.TotalHours([Tempo total do turno]), type number),
-				    #"Personalização Adicionada1" = Table.AddColumn(#"Horas Totais Inseridas", "Horas úteis", each let
-				    H = (t) => if t = null then 0 else Duration.TotalHours( t - #time(0,0,0) )
-				  in
-				    if [Total de Horas] = null then null
-				    else [Total de Horas]
-				       - H([#"TEMPO MOBILIZAÇÃO (min)"])
-				       - H([#"TEMPO DESMOBILIZAÇÃO (min)"])
-				       - H([#"TEMPO DESLOCAMENTO (min)"])
-				       - H([#"TEMPO INTERVALO (min)"]))
+				    // Horários pré-setados (mesmos valores do painel OPE: T1/T2/T3, meta 15)
+				    Fonte = Table.FromRecords({
+				        [ANO = 2026, MÊS = "JULHO", TURNO = "T1", #"HORA INÍCIO" = #time(7, 30, 0), #"HORA FIM" = #time(16, 30, 0), #"TEMPO MOBILIZAÇÃO (min)" = #time(0, 20, 0), #"TEMPO DESMOBILIZAÇÃO (min)" = #time(0, 20, 0), #"TEMPO DESLOCAMENTO (min)" = #time(1, 0, 0), #"TEMPO INTERVALO (min)" = #time(1, 30, 0), #"TEMPO TOTAL PREVISTO" = #time(9, 0, 0), #"META DISPONIBILIDADE" = #time(5, 50, 0), #"META PRODUÇÃO" = 15, #"META PRODUTIVIDADE (hh)" = #time(0, 23, 20)],
+				        [ANO = 2026, MÊS = "JULHO", TURNO = "T2", #"HORA INÍCIO" = #time(14, 0, 0), #"HORA FIM" = #time(23, 0, 0), #"TEMPO MOBILIZAÇÃO (min)" = #time(0, 20, 0), #"TEMPO DESMOBILIZAÇÃO (min)" = #time(0, 20, 0), #"TEMPO DESLOCAMENTO (min)" = #time(1, 0, 0), #"TEMPO INTERVALO (min)" = #time(1, 30, 0), #"TEMPO TOTAL PREVISTO" = #time(9, 0, 0), #"META DISPONIBILIDADE" = #time(5, 50, 0), #"META PRODUÇÃO" = 15, #"META PRODUTIVIDADE (hh)" = #time(0, 23, 20)],
+				        [ANO = 2026, MÊS = "JULHO", TURNO = "T3", #"HORA INÍCIO" = #time(22, 0, 0), #"HORA FIM" = #time(6, 0, 0), #"TEMPO MOBILIZAÇÃO (min)" = #time(0, 20, 0), #"TEMPO DESMOBILIZAÇÃO (min)" = #time(0, 20, 0), #"TEMPO DESLOCAMENTO (min)" = #time(1, 0, 0), #"TEMPO INTERVALO (min)" = #time(1, 30, 0), #"TEMPO TOTAL PREVISTO" = #time(8, 0, 0), #"META DISPONIBILIDADE" = #time(4, 50, 0), #"META PRODUÇÃO" = 15, #"META PRODUTIVIDADE (hh)" = #time(0, 19, 20)]
+				    }),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(Fonte, {{"ANO", Int64.Type}, {"MÊS", type text}, {"TURNO", type text}, {"HORA INÍCIO", type time}, {"HORA FIM", type time}, {"TEMPO MOBILIZAÇÃO (min)", type time}, {"TEMPO DESMOBILIZAÇÃO (min)", type time}, {"TEMPO DESLOCAMENTO (min)", type time}, {"TEMPO INTERVALO (min)", type time}, {"TEMPO TOTAL PREVISTO", type time}, {"META DISPONIBILIDADE", type time}, {"META PRODUÇÃO", Int64.Type}, {"META PRODUTIVIDADE (hh)", type time}}),
+				    #"Tempo total do turno" = Table.AddColumn(#"Tipo Alterado", "Tempo total do turno", each if [HORA INÍCIO] = null or [HORA FIM] = null then null else if [HORA FIM] >= [HORA INÍCIO] then [HORA FIM] - [HORA INÍCIO] else ([HORA FIM] - [HORA INÍCIO]) + #duration(1, 0, 0, 0)),
+				    #"Total de Horas" = Table.AddColumn(#"Tempo total do turno", "Total de Horas", each Duration.TotalHours([Tempo total do turno]), type number),
+				    #"Horas úteis" = Table.AddColumn(#"Total de Horas", "Horas úteis", each let H = (t) => if t = null then 0 else Duration.TotalHours(t - #time(0, 0, 0)) in if [Total de Horas] = null then null else [Total de Horas] - H([#"TEMPO MOBILIZAÇÃO (min)"]) - H([#"TEMPO DESMOBILIZAÇÃO (min)"]) - H([#"TEMPO DESLOCAMENTO (min)"]) - H([#"TEMPO INTERVALO (min)"])),
+				    #"META DISPONIBILIDADE MIN" = Table.AddColumn(#"Horas úteis", "META DISPONIBILIDADE MIN", each Duration.TotalMinutes([#"META DISPONIBILIDADE"] - #time(0, 0, 0)), type number),
+				    #"META PRODUTIVIDADE MIN" = Table.AddColumn(#"META DISPONIBILIDADE MIN", "META PRODUTIVIDADE MIN", each Duration.TotalMinutes([#"META PRODUTIVIDADE (hh)"] - #time(0, 0, 0)), type number)
 				in
-				    #"Personalização Adicionada1"
+				    #"META PRODUTIVIDADE MIN"
+				```
 
-	annotation PBI_ResultType = Table
+annotation PBI_ResultType = Table
 
-	annotation PBI_NavigationStepName = Navegação
-
+annotation PBI_NavigationStepName = Navegação

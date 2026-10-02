@@ -237,15 +237,16 @@ table F_paradas
 		queryGroup: 'Tabela Fato'
 		source = ```
 				let
+				    // Tempo de parada em MINUTOS (a medida [Paradas Min] soma esta coluna)
 				    Fonte = SharePoint.Tables("https://engie.sharepoint.com/sites/CidadesInteligentes", [Implementation="2.0", ViewMode="All"]),
 				    #"e3b63167-8272-4618-83ad-f18b7c18dd60" = Fonte{[Id="e3b63167-8272-4618-83ad-f18b7c18dd60"]}[Items],
 				    #"Personalização Adicionada" = Table.AddColumn(#"e3b63167-8272-4618-83ad-f18b7c18dd60", "Tempo de parada", each if [#"Início da parada"] = null or [#"Fim da parada"] = null 
 				  then null 
 				  else [#"Fim da parada"] - [#"Início da parada"]),
 				    #"Tipo Alterado" = Table.TransformColumnTypes(#"Personalização Adicionada",{{"Tempo de parada", type duration}}),
-				    #"Total de Horas Calculadas" = Table.TransformColumns(#"Tipo Alterado",{{"Tempo de parada", Duration.TotalHours, type number}})
+				    #"Minutos de Parada" = Table.TransformColumns(#"Tipo Alterado",{{"Tempo de parada", Duration.TotalMinutes, type number}})
 				in
-				    #"Total de Horas Calculadas"
+				    #"Minutos de Parada"
 				```
 
 	annotation PBI_NavigationStepName = Navegação

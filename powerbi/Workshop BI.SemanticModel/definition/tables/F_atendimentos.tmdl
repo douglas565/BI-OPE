@@ -1,56 +1,6 @@
 table F_atendimentos
 	lineageTag: b61843a5-55f3-43a7-ab7b-3ac8267398a9
 
-	measure md_qualidade =
-			
-			DIVIDE(
-			    CALCULATE(
-			        COUNT('F_atendimentos'[ID_ATENDIMENTO_PS]),
-			        F_atendimentos[DESC_STATUS_ATENDIMENTO_PS] = "Atendido"
-			    ),
-			    COUNT(F_atendimentos[ID_ATENDIMENTO_PS]),
-			    0
-			)
-		formatString: 0.00%;-0.00%;0.00%
-		lineageTag: bb9725ae-9cff-4f85-b27c-3c80ec51401b
-
-	measure md_encontrado_normal = ```
-			
-			
-			    CALCULATE(
-			        COUNT('F_atendimentos'[ID_ATENDIMENTO_PS]),
-			        F_atendimentos[DESC_STATUS_ATENDIMENTO_PS] = "Encontrado Normal"
-			    )
-			```
-		formatString: 0
-		lineageTag: d3f6a91b-69e8-4aa8-b48e-95aae6ed7486
-
-	measure md_atendido = ```
-			
-			
-			    CALCULATE(
-			        COUNT('F_atendimentos'[ID_ATENDIMENTO_PS]),
-			        F_atendimentos[DESC_STATUS_ATENDIMENTO_PS] = "Atendido"
-			    )
-			```
-		formatString: 0
-		lineageTag: f5efd219-b304-4951-b2c1-95f459119806
-
-	measure md_impossibilidade = ```
-			
-			
-			    CALCULATE(
-			        COUNT('F_atendimentos'[ID_ATENDIMENTO_PS]),
-			        F_atendimentos[DESC_STATUS_ATENDIMENTO_PS] = "Impossibilidade"
-			    )
-			```
-		formatString: 0
-		lineageTag: a316cc88-554e-4f00-b796-501bf4d4a890
-
-	measure md_meta_impossibilidade = 10
-		formatString: 0
-		lineageTag: 521709fc-dc54-4378-a4c5-cfec0ccd4ac5
-
 	column NUMERO_PROTOCOLO
 		dataType: string
 		lineageTag: 175924b7-4263-4f51-bdb4-19bc627ff071
@@ -420,109 +370,208 @@ table F_atendimentos
 
 		annotation SummarizationSetBy = Automatic
 
-	measure Realizados = CALCULATE( DISTINCTCOUNT(F_atendimentos[ID_ATENDIMENTO_PS]), F_atendimentos[EhEquipeCampo] = TRUE() )
+	column DataOperacional
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: e19ca8ae-1ebd-434d-938b-d1d77580d14a
+		summarizeBy: none
+		sourceColumn: DataOperacional
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column EquipeNormalizada
+		dataType: string
+		lineageTag: afdb1795-916a-4f3f-9124-ae3f016605fb
+		summarizeBy: none
+		sourceColumn: EquipeNormalizada
+
+		annotation SummarizationSetBy = Automatic
+
+	column EhEquipeCampo
+		dataType: boolean
+		lineageTag: 93b10578-fc90-415c-955e-2c737f434f92
+		summarizeBy: none
+		sourceColumn: EhEquipeCampo
+
+		annotation SummarizationSetBy = Automatic
+
+	column EhOperacional
+		dataType: boolean
+		lineageTag: 1c7e66a6-1de9-42a1-9cb5-d13bd5715d00
+		summarizeBy: none
+		sourceColumn: EhOperacional
+
+		annotation SummarizationSetBy = Automatic
+
+	column EhImpossibilidade
+		dataType: boolean
+		lineageTag: 67e06ef7-d3fd-427b-8d49-146a1c5ca941
+		summarizeBy: none
+		sourceColumn: EhImpossibilidade
+
+		annotation SummarizationSetBy = Automatic
+
+	column DuracaoExecucaoMin
+		dataType: double
 		formatString: 0
-		lineageTag: m1
+		lineageTag: 2fb28b96-d5b8-47e6-8412-ede5304e05f4
+		summarizeBy: none
+		sourceColumn: DuracaoExecucaoMin
 
-	measure Impossibilidades = CALCULATE([Realizados], D_Motivo[EhImpossibilidade] = TRUE())
+		annotation SummarizationSetBy = Automatic
+
+	column Turno
+		dataType: string
+		lineageTag: 46bf3643-6a0e-49a6-bfd7-5fa50c8f35c9
+		summarizeBy: none
+		sourceColumn: Turno
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChaveEquipeDiaTurno
+		dataType: string
+		lineageTag: 1f123aa0-31a4-4943-85ea-9d053031353d
+		summarizeBy: none
+		sourceColumn: ChaveEquipeDiaTurno
+
+		annotation SummarizationSetBy = Automatic
+
+	measure Realizados = CALCULATE( DISTINCTCOUNT(F_atendimentos[ID_ATENDIMENTO_PS]), F_atendimentos[EhEquipeCampo] = TRUE(), F_atendimentos[EhOperacional] = TRUE() )
 		formatString: 0
-		lineageTag: m2
+		lineageTag: 36c50176-2620-47fa-a489-69be71bc6473
 
-	measure Válidos = MAX(0, [Realizados] - [Impossibilidades])
+	measure 'Equipe-dia' = COUNTROWS( CALCULATETABLE( SUMMARIZE( F_atendimentos, F_atendimentos[EquipeNormalizada], F_atendimentos[DataOperacional] ), F_atendimentos[EhEquipeCampo] = TRUE(), F_atendimentos[EhOperacional] = TRUE() ) )
 		formatString: 0
-		lineageTag: m3
+		lineageTag: 857992cc-1b3b-4f70-b0d2-d424576f3b32
 
-	measure 'Tempo Base Min' = SUMX( VALUES(F_atendimentos[ChaveEquipeDiaTurno]), CALCULATE(MAX(D_turnos[META DISPONIBILIDADE])) )
+	measure 'Meta Produção' = 15 * ['Equipe-dia']
 		formatString: 0
-		lineageTag: m4
+		lineageTag: fc4a5631-5e52-4909-8a4d-c083abaed383
 
-	measure 'Paradas Min' = SUM(F_paradas[Tempo de parada])
+	measure Impossibilidades = CALCULATE( [Realizados], F_atendimentos[EhImpossibilidade] = TRUE() )
 		formatString: 0
-		lineageTag: m5
+		lineageTag: 800a571f-cb59-41ca-9307-fa9ec5a9d4f5
 
-	measure 'Tempo Disponível Min' = MAX(0, [Tempo Base Min] - [Paradas Min])
+	measure Válidos = MAX( 0, [Realizados] - [Impossibilidades] )
 		formatString: 0
-		lineageTag: m6
+		lineageTag: 2d922fd5-1f5a-4431-aee1-8c5df9f6c2ae
 
-	measure 'Disponibilidade %' = DIVIDE([Tempo Disponível Min], [Tempo Base Min])
-		formatString: 0.0%
-		lineageTag: m7
-
-	measure 'Meta Tempo Min' = COALESCE(MAX(D_turnos[META PRODUTIVIDADE (hh)]), 23)
+	measure 'Tempo Base Min' = SUMX( CALCULATETABLE( SUMMARIZE( F_atendimentos, F_atendimentos[ChaveEquipeDiaTurno], F_atendimentos[Turno] ), F_atendimentos[EhEquipeCampo] = TRUE(), F_atendimentos[EhOperacional] = TRUE() ), MAXX( FILTER( D_turnos, D_turnos[TURNO] = F_atendimentos[Turno] ), D_turnos[META DISPONIBILIDADE MIN] ) )
 		formatString: 0
-		lineageTag: m8
+		lineageTag: 968ea990-f606-4b7b-a97f-10d9d2832c3e
 
-	measure 'Tempo Necessário Min' = [Meta Tempo Min] * [Válidos]
+	measure 'Paradas Min' = SUM( F_paradas[Tempo de parada] )
 		formatString: 0
-		lineageTag: m9
+		lineageTag: f5159d7e-eb2f-4b60-b637-cd5d06086f1d
 
-	measure 'Performance %' = DIVIDE([Tempo Necessário Min], [Tempo Disponível Min])
+	measure 'Tempo Disponível Min' = MAX( 0, ['Tempo Base Min'] - ['Paradas Min'] )
+		formatString: 0
+		lineageTag: f2357eeb-9520-419b-9cef-225083a956e7
+
+	measure 'Disponibilidade %' = DIVIDE( ['Tempo Disponível Min'], ['Tempo Base Min'] )
 		formatString: 0.0%
-		lineageTag: m10
+		lineageTag: 43dbf102-d25b-4733-8c4c-fcfcc85d386a
 
-	measure 'Qualidade %' = DIVIDE([Válidos], [Realizados])
+	measure 'Meta Tempo Min' = COALESCE( MAX( D_turnos[META PRODUTIVIDADE MIN] ), 23 )
+		formatString: 0
+		lineageTag: a00a6400-3a28-46ca-a696-073888bbe61d
+
+	measure 'Tempo Necessário Min' = ['Meta Tempo Min'] * [Válidos]
+		formatString: 0
+		lineageTag: 5f3ebf1f-2984-42da-9d4f-863ced03eb91
+
+	measure 'Performance %' = DIVIDE( [Realizados], ['Meta Produção'] )
 		formatString: 0.0%
-		lineageTag: m11
+		lineageTag: 79030dcb-8a03-42b2-927f-2a6ef8301c93
 
-	measure 'OPE %' = [Disponibilidade %] * [Performance %] * [Qualidade %]
+	measure 'Performance (Tempo) %' = DIVIDE( ['Tempo Necessário Min'], ['Tempo Disponível Min'] )
 		formatString: 0.0%
-		lineageTag: m12
+		lineageTag: 7bf9c600-e300-477d-bfdb-e7e505d2e6e5
 
-	measure 'Disponibilidade (Limitada) %' = IF([Disponibilidade %] > 1, 1, [Disponibilidade %])
+	measure 'Qualidade %' = DIVIDE( [Válidos], [Realizados] )
 		formatString: 0.0%
-		lineageTag: m13
+		lineageTag: 3be5b71a-4f6c-4421-a94d-171864637269
 
-	measure 'Performance (Limitada) %' = IF([Performance %] > 1, 1, [Performance %])
+	measure 'OPE %' = ['Disponibilidade %'] * ['Performance %'] * ['Qualidade %']
 		formatString: 0.0%
-		lineageTag: m14
+		lineageTag: 4c210590-084f-4116-9c72-26b943762966
 
-	measure 'Qualidade (Limitada) %' = IF([Qualidade %] > 1, 1, [Qualidade %])
+	measure 'Disponibilidade (Limitada) %' = IF(['Disponibilidade %'] > 1, 1, ['Disponibilidade %'])
 		formatString: 0.0%
-		lineageTag: m15
+		lineageTag: 422c4550-20f4-4f49-af05-195de92a9c9e
 
-	measure 'OPE (Limitado) %' = [Disponibilidade (Limitada) %] * [Performance (Limitada) %] * [Qualidade (Limitada) %]
+	measure 'Performance (Limitada) %' = IF(['Performance %'] > 1, 1, ['Performance %'])
 		formatString: 0.0%
-		lineageTag: m16
+		lineageTag: 49920faa-b9b5-4a32-9c7a-d23a628128c2
 
+	measure 'Qualidade (Limitada) %' = IF(['Qualidade %'] > 1, 1, ['Qualidade %'])
+		formatString: 0.0%
+		lineageTag: 931b713a-0d26-4d21-9af7-2fc6f1967a07
 
+	measure 'OPE (Limitado) %' = ['Disponibilidade (Limitada) %'] * ['Performance (Limitada) %'] * ['Qualidade (Limitada) %']
+		formatString: 0.0%
+		lineageTag: d0ec7edf-23aa-4af7-9ecb-d767c5d0f3b3
 
+	measure md_qualidade = DIVIDE( CALCULATE( COUNT('F_atendimentos'[ID_ATENDIMENTO_PS]), F_atendimentos[DESC_STATUS_ATENDIMENTO_PS] = "Atendido" ), COUNT(F_atendimentos[ID_ATENDIMENTO_PS]), 0 )
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: bb9725ae-9cff-4f85-b27c-3c80ec51401b
 
+	measure md_encontrado_normal = CALCULATE( COUNT('F_atendimentos'[ID_ATENDIMENTO_PS]), F_atendimentos[DESC_STATUS_ATENDIMENTO_PS] = "Encontrado Normal" )
+		formatString: 0
+		lineageTag: d3f6a91b-69e8-4aa8-b48e-95aae6ed7486
+
+	measure md_atendido = CALCULATE( COUNT('F_atendimentos'[ID_ATENDIMENTO_PS]), F_atendimentos[DESC_STATUS_ATENDIMENTO_PS] = "Atendido" )
+		formatString: 0
+		lineageTag: f5efd219-b304-4951-b2c1-95f459119806
+
+	measure md_impossibilidade = CALCULATE( COUNT('F_atendimentos'[ID_ATENDIMENTO_PS]), F_atendimentos[DESC_STATUS_ATENDIMENTO_PS] = "Impossibilidade" )
+		formatString: 0
+		lineageTag: a316cc88-554e-4f00-b796-501bf4d4a890
+
+	measure md_meta_impossibilidade = 10
+		formatString: 0
+		lineageTag: 521709fc-dc54-4378-a4c5-cfec0ccd4ac5
 
 	partition F_atendimentos = m
 		mode: import
 		queryGroup: 'Tabela Fato'
 		source = ```
 				let
+				    // ATENCAO: substitua #REPLACESECRET# pela senha do usuario de consulta (ver README)
 				    User = "consulta.webservice",
-				    Pass = "@consult56324",
+				    Pass = "#REPLACESECRET#",
 				    URL_Login = "https://engiecuritiba.exati.com.br/guia/command/engiecuritiba?CMD.COMMAND=Login&CMD_username=" & User & "&CMD_password=" & Pass & "&parser=json",
 				    GetJsonLogin = Json.Document(Web.Contents(URL_Login)),
 				    ToTableLogin = Record.ToTable(GetJsonLogin),
 				    ExpandToken = Table.ExpandRecordColumn(ToTableLogin, "Value", {"AUTH_TOKEN"}, {"AUTH_TOKEN"}),
 				    AuthToken = List.Last(Record.FieldValues(ExpandToken{0})),
-				 
-				
 				    RelativeURL = "/guia/command/engiecuritiba/relatoriosHouer.json",
 				    URL = RelativeURL & "?CMD_SCRIPT_PARAMETERS={""OPCAO"":""4"",""PAGE"":0,""PAGE_SIZE"":0,""DATA_INICIO"":""01/06/2026""}&auth_token=" & AuthToken,
-				 
 				    Data = Json.Document(Web.Contents("https://engiecuritiba.exati.com.br", [RelativePath = URL])),
 				    RAIZ = Data[RAIZ],
 				    PONTOS_ATENDIDOS = RAIZ[PONTOS_ATENDIDOS],
 				    PONTO_ATENDIDO = PONTOS_ATENDIDOS[PONTO_ATENDIDO],
 				    #"Convertido para Tabela" = Table.FromList(PONTO_ATENDIDO, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
 				    #"Column1 Expandido" = Table.ExpandRecordColumn(#"Convertido para Tabela", "Column1", {"NUMERO_PROTOCOLO", "TOTAL_ATENDIMENTOS", "TOTAL_CONFIRMADOS", "TOTAL_DESCONFIRMADOS", "DIST", "ID_POSICAO_GEOGRAFICA_EQUIPE", "ID_ATENDIMENTO_PS", "ID_POSICAO_GEOGRAFICA_PONTO", "LATITUDE_TOTAL_PONTO", "LONGITUDE_TOTAL_PONTO", "LATITUDE_TOTAL_EQUIPE", "LONGITUDE_TOTAL_EQUIPE", "NUMERO_LOCAL_INICIAL", "ID_PARQUE_SERVICO", "ENDERECO_LIVRE", "NOME_BAIRRO", "NOME_MUNICIPIO", "DESC_TIPO_LOGRADOURO", "NOME_LOGRADOURO", "DESC_STATUS_ATENDIMENTO_PS", "DESC_MOTIVO_ATENDIMENTO_PS", "NOME_LOGRADOURO_COMPLETO", "ID_PONTO_SERVICO", "DESC_SOLUCAO_ATENDIMENTO_PS", "DATA_HORA_INICIO_ATENDIMENTO", "DATA_HORA_CONCLUSAO_ATENDIMENTO", "DATA_INICIO_ATENDIMENTO", "DATA_CONCLUSAO_ATENDIMENTO", "HORA_INICIO", "HORA_CONCLUSAO", "DATA_ATENDIMENTO", "ID_AUTENT_CONFIRMACAO", "ID_DOMINIO", "DESC_DOMINIO", "OBS", "DESC_PRIORIDADE_PONTO_OCORR", "DESC_EQUIPE", "EMPRESA_USUARIA_EQUIPE", "NOME_REGIAO", "NOME_PARQUE_SERVICO", "VEICULOS", "DESC_TIPO_OCORRENCIA", "NUMERO_IDENTIFICACAO", "ENDERECO"}, {"NUMERO_PROTOCOLO", "TOTAL_ATENDIMENTOS", "TOTAL_CONFIRMADOS", "TOTAL_DESCONFIRMADOS", "DIST", "ID_POSICAO_GEOGRAFICA_EQUIPE", "ID_ATENDIMENTO_PS", "ID_POSICAO_GEOGRAFICA_PONTO", "LATITUDE_TOTAL_PONTO", "LONGITUDE_TOTAL_PONTO", "LATITUDE_TOTAL_EQUIPE", "LONGITUDE_TOTAL_EQUIPE", "NUMERO_LOCAL_INICIAL", "ID_PARQUE_SERVICO", "ENDERECO_LIVRE", "NOME_BAIRRO", "NOME_MUNICIPIO", "DESC_TIPO_LOGRADOURO", "NOME_LOGRADOURO", "DESC_STATUS_ATENDIMENTO_PS", "DESC_MOTIVO_ATENDIMENTO_PS", "NOME_LOGRADOURO_COMPLETO", "ID_PONTO_SERVICO", "DESC_SOLUCAO_ATENDIMENTO_PS", "DATA_HORA_INICIO_ATENDIMENTO", "DATA_HORA_CONCLUSAO_ATENDIMENTO", "DATA_INICIO_ATENDIMENTO", "DATA_CONCLUSAO_ATENDIMENTO", "HORA_INICIO", "HORA_CONCLUSAO", "DATA_ATENDIMENTO", "ID_AUTENT_CONFIRMACAO", "ID_DOMINIO", "DESC_DOMINIO", "OBS", "DESC_PRIORIDADE_PONTO_OCORR", "DESC_EQUIPE", "EMPRESA_USUARIA_EQUIPE", "NOME_REGIAO", "NOME_PARQUE_SERVICO", "VEICULOS", "DESC_TIPO_OCORRENCIA", "NUMERO_IDENTIFICACAO", "ENDERECO"}),
-				    #"Tipo Alterado" = Table.TransformColumnTypes(#"Column1 Expandido",{{"DATA_HORA_INICIO_ATENDIMENTO", type datetime}, {"DATA_HORA_CONCLUSAO_ATENDIMENTO", type datetime}, {"DATA_INICIO_ATENDIMENTO", type date}, {"DATA_CONCLUSAO_ATENDIMENTO", type date}, {"HORA_INICIO", type time}, {"HORA_CONCLUSAO", type time}, {"DATA_ATENDIMENTO", type date}}),
-				    #"Linhas Filtradas" = Table.SelectRows(#"Tipo Alterado", each Text.Contains([DESC_EQUIPE], "Man-IP")),
-            DataOperacional = Table.AddColumn(#"Linhas Filtradas", "DataOperacional", each if Time.From([DATA_HORA_INICIO_ATENDIMENTO]) <= #time(6, 30, 0) then Date.AddDays(Date.From([DATA_HORA_INICIO_ATENDIMENTO]), -1) else Date.From([DATA_HORA_INICIO_ATENDIMENTO]), type date),
-            EquipeNormalizada = Table.AddColumn(DataOperacional, "EquipeNormalizada", each Text.Trim(Text.Replace([DESC_EQUIPE], " | ENGIE", "")), type text),
-            EhEquipeCampo = Table.AddColumn(EquipeNormalizada, "EhEquipeCampo", each not Text.Contains([EquipeNormalizada], "CCO", Combiner.OrdinalIgnoreCase), type logical),
-            DuracaoExecucaoMin = Table.AddColumn(EhEquipeCampo, "DuracaoExecucaoMin", each if [DATA_HORA_CONCLUSAO_ATENDIMENTO] <> null and [DATA_HORA_CONCLUSAO_ATENDIMENTO] >= [DATA_HORA_INICIO_ATENDIMENTO] then Duration.TotalMinutes([DATA_HORA_CONCLUSAO_ATENDIMENTO] - [DATA_HORA_INICIO_ATENDIMENTO]) else null, type number),
-            ExtraTurnoTemp = Table.AddColumn(DuracaoExecucaoMin, "TurnoTemp", each "T1", type text),
-            ChaveEquipeDiaTurno = Table.AddColumn(ExtraTurnoTemp, "ChaveEquipeDiaTurno", each [EquipeNormalizada] & "|" & Date.ToText([DataOperacional], "yyyy-MM-dd") & "|" & [TurnoTemp], type text)				in
-				    ChaveEquipeDiaTurno
+				    #"Tipo Alterado" = Table.TransformColumnTypes(#"Column1 Expandido", {{"DATA_HORA_INICIO_ATENDIMENTO", type datetime}, {"DATA_HORA_CONCLUSAO_ATENDIMENTO", type datetime}, {"DATA_INICIO_ATENDIMENTO", type date}, {"DATA_CONCLUSAO_ATENDIMENTO", type date}, {"HORA_INICIO", type time}, {"HORA_CONCLUSAO", type time}, {"DATA_ATENDIMENTO", type date}}),
+				    #"Início Válido" = Table.SelectRows(#"Tipo Alterado", each [DATA_HORA_INICIO_ATENDIMENTO] <> null),
+				    DataOperacional = Table.AddColumn(#"Início Válido", "DataOperacional", each if Time.From([DATA_HORA_INICIO_ATENDIMENTO]) <= #time(6, 30, 0) then Date.AddDays(Date.From([DATA_HORA_INICIO_ATENDIMENTO]), -1) else Date.From([DATA_HORA_INICIO_ATENDIMENTO]), type date),
+				    EquipeNormalizada = Table.AddColumn(DataOperacional, "EquipeNormalizada", each Text.Trim(Text.Replace(if [DESC_EQUIPE] = null then "" else [DESC_EQUIPE], " | ENGIE", "")), type text),
+				    EhEquipeCampo = Table.AddColumn(EquipeNormalizada, "EhEquipeCampo", each not Text.Contains([EquipeNormalizada], "CCO", Combiner.OrdinalIgnoreCase), type logical),
+				    MinutoDia = Table.AddColumn(EhEquipeCampo, "MinutoDia", each Time.Hour([DATA_HORA_INICIO_ATENDIMENTO]) * 60 + Time.Minute([DATA_HORA_INICIO_ATENDIMENTO]), type number),
+				    Turno = Table.AddColumn(MinutoDia, "Turno", each if [MinutoDia] <= 360 then "T3" else if [MinutoDia] <= 449 then "Fora" else if [MinutoDia] <= 990 then "T1" else if [MinutoDia] <= 1380 then "T2" else "T3", type text),
+				    EhOperacional = Table.AddColumn(Turno, "EhOperacional", each [Turno] <> "Fora", type logical),
+				    LimpaTexto = (t) => let u = Text.Upper(if t = null then "" else t) in Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(u, "Á", "A"), "À", "A"), "Â", "A"), "Ã", "A"), "Ä", "A"), "É", "E"), "Ê", "E"), "È", "E"), "Í", "I"), "Ì", "I"), "Ó", "O"), "Ô", "O"), "Õ", "O"), "Ö", "O"), "Ú", "U"), "Ü", "U"), "Ç", "C"), "Ï", "I"), "Î", "I"), "Ù", "U"),
+				    EhImpossibilidade = Table.AddColumn(EhOperacional, "EhImpossibilidade", each let st = LimpaTexto([DESC_STATUS_ATENDIMENTO_PS]) in st <> "ATENDIDO" and Text.Contains(st, "IMP"), type logical),
+				    DuracaoExecucaoMin = Table.AddColumn(EhImpossibilidade, "DuracaoExecucaoMin", each if [DATA_HORA_CONCLUSAO_ATENDIMENTO] <> null and [DATA_HORA_CONCLUSAO_ATENDIMENTO] >= [DATA_HORA_INICIO_ATENDIMENTO] then Duration.TotalMinutes([DATA_HORA_CONCLUSAO_ATENDIMENTO] - [DATA_HORA_INICIO_ATENDIMENTO]) else null, type number),
+				    ChaveEquipeDiaTurno = Table.AddColumn(DuracaoExecucaoMin, "ChaveEquipeDiaTurno", each [EquipeNormalizada] & "|" & Date.ToText([DataOperacional], "yyyy-MM-dd") & "|" & [Turno], type text),
+				    SemAuxiliares = Table.RemoveColumns(ChaveEquipeDiaTurno, {"MinutoDia"})
+				in
+				    SemAuxiliares
 				```
 
-	annotation PBI_NavigationStepName = Navegação
+annotation PBI_NavigationStepName = Navegação
 
-	annotation PBI_ResultType = Table
-
+annotation PBI_ResultType = Table

@@ -17,17 +17,16 @@ queryGroup 'Tabelas Dimensão'
 
 annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["F_atendimentos","F_planejamento","F_paradas","D_equipes","D_turnos"]
+annotation PBI_QueryOrder = ["F_atendimentos","F_planejamento","F_paradas","D_equipes","D_turnos","D_Calendario","D_Motivo"]
 
 annotation PBI_ProTooling = ["DevMode"]
 
 ref table F_atendimentos
-ref table D_equipes
-ref table D_turnos
 ref table F_planejamento
 ref table F_paradas
-
-ref cultureInfo pt-BR
-
+ref table D_equipes
+ref table D_turnos
 ref table D_Calendario
 ref table D_Motivo
+
+ref cultureInfo pt-BR

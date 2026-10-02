@@ -1,0 +1,197 @@
+#!/usr/bin/env python3
+"""Validador estatico do projeto BI-OPE (PBIP/TMDL).
+
+Uso (da raiz do repositorio):
+    python3 tests/validate_pbip.py
+
+Verifica: JSONs do PBIP/relatorio, estrutura e recursos do TMDL,
+relacionamentos, referencias de medidas, residuos de auto date/time
+e consistencia entre model.tmdl e as tabelas.
+"""
+import json
+import pathlib
+import re
+import sys
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+PBI = ROOT / "powerbi"
+SM = PBI / "Workshop BI.SemanticModel"
+DEF = SM / "definition"
+
+fails, oks = [], []
+
+
+def ok(msg):
+    oks.append(msg)
+
+
+def fail(msg):
+    fails.append(msg)
+
+
+def unquote(name):
+    name = name.strip()
+    if len(name) >= 2 and name[0] == "'" and name[-1] == "'":
+        return name[1:-1]
+    return name
+
+
+# 1) JSONs
+json_files = [
+    PBI / "Workshop BI.pbip",
+    PBI / "Workshop BI.Report" / "definition.pbir",
+    SM / "definition.pbism",
+    SM / "diagramLayout.json",
+    PBI / "Workshop BI.Report" / "definition" / "report.json",
+    PBI / "Workshop BI.Report" / "definition" / "version.json",
+    PBI / "Workshop BI.Report" / "definition" / "pages" / "pages.json",
+]
+for jf in json_files:
+    try:
+        json.load(open(jf, encoding="utf-8-sig"))
+        ok("JSON ok: " + str(jf.relative_to(ROOT)))
+    except Exception as e:
+        fail("JSON invalido: %s -> %s" % (jf.relative_to(ROOT), e))
+
+pages_dir = PBI / "Workshop BI.Report" / "definition" / "pages"
+for page_dir in sorted(p for p in pages_dir.iterdir() if p.is_dir()):
+    pj = page_dir / "page.json"
+    try:
+        json.load(open(pj, encoding="utf-8-sig"))
+        ok("JSON ok: " + str(pj.relative_to(ROOT)))
+    except Exception as e:
+        fail("JSON invalido: %s -> %s" % (pj.relative_to(ROOT), e))
+    for vj in sorted((page_dir / "visuals").glob("*/visual.json")):
+        try:
+            json.load(open(vj, encoding="utf-8-sig"))
+        except Exception as e:
+            fail("JSON invalido: %s -> %s" % (vj.relative_to(ROOT), e))
+ok("visuals do relatorio: JSON ok")
+
+# 2) TMDL: indentacao (somente abas, com espacos extras permitidos apenas dentro dos blocos M)
+tmdl_all = sorted(DEF.rglob("*.tmdl"))
+for tf in tmdl_all:
+    for i, ln in enumerate(open(tf, encoding="utf-8").read().split("\n"), 1):
+        ws = ln[: len(ln) - len(ln.lstrip(" \t"))]
+        if ws and not re.fullmatch(r"\t* *", ws):
+            fail("%s:%d indentacao mista (use abas)" % (tf.name, i))
+ok("indentacao dos TMDL por abas")
+
+# 3) tabelas/colunas/medidas
+tables, measures = {}, {}
+for tf in sorted((DEF / "tables").glob("*.tmdl")):
+    text = open(tf, encoding="utf-8").read()
+    tname, cols = None, set()
+    for ln in text.split("\n"):
+        m = re.match(r"^table\s+(.+)$", ln)
+        if m:
+            tname = unquote(m.group(1))
+            continue
+        m = re.match(r"^\tcolumn\s+(.+)$", ln)
+        if m and tname:
+            cols.add(unquote(m.group(1)))
+        m = re.match(r"^\tmeasure\s+('([^']+)'|[^=]+?)\s*=", ln)
+        if m:
+            measures[unquote(m.group(2) or m.group(1))] = ln
+    if tname:
+        tables[tname] = cols
+    else:
+        fail(tf.name + ": sem declaracao 'table'")
+ok("tabelas TMDL: " + ", ".join(sorted(tables)))
+
+# 4) model.tmdl refs
+model = open(DEF / "model.tmdl", encoding="utf-8").read()
+refs = set(unquote(x) for x in re.findall(r"^ref table (.+)$", model, re.M))
+missing = refs - set(tables)
+if missing:
+    fail("model.tmdl referencia tabelas inexistentes: %s" % missing)
+else:
+    ok("model.tmdl: %d refs de tabela ok" % len(refs))
+if "ref cultureInfo pt-BR" in model and not (DEF / "cultures" / "pt-BR.tmdl").exists():
+    fail("ref cultureInfo pt-BR sem cultures/pt-BR.tmdl")
+else:
+    ok("cultureInfo pt-BR consistente")
+
+# 5) relacionamentos
+rels = open(DEF / "relationships.tmdl", encoding="utf-8").read()
+n_rels = 0
+for frm, to in re.findall(
+    r"fromColumn:\s*(.+?)\s*\n\s*toColumn:\s*(.+?)\s*$", rels, re.M
+):
+    def split_col(s):
+        s = s.strip()
+        if "." not in s:
+            return None, None
+        t, c = s.split(".", 1)
+        return unquote(t), unquote(c)
+
+    ft, fc = split_col(frm)
+    tt, tc = split_col(to)
+    for t_, c_ in ((ft, fc), (tt, tc)):
+        if t_ not in tables:
+            fail("relacionamento: tabela '%s' inexistente" % t_)
+        elif c_ not in tables[t_]:
+            fail("relacionamento: coluna '%s.%s' inexistente" % (t_, c_))
+    n_rels += 1
+ok("%d relacionamentos verificados" % n_rels)
+
+# 6) referencias de medidas a colunas (Table[Col])
+for mname, expr in measures.items():
+    for t, c in re.findall(
+        r"([A-Za-z_][A-Za-z0-9_]*(?:\s+[A-Za-z0-9_]+)*)\[([^\[\]]+)\]", expr
+    ):
+        t = t.strip()
+        if t in tables and c not in tables[t]:
+            fail("medida '%s': referencia %s[%s] sem coluna" % (mname, t, c))
+ok("%d medidas verificadas" % len(measures))
+
+# 7) residuos proibidos
+for tf in tmdl_all:
+    txt = open(tf, encoding="utf-8", errors="replace").read()
+    for bad in ("VariationSource", "VariationSet", "variation ", "columnID"):
+        if bad in txt:
+            fail("%s: residuo proibido '%s'" % (tf.relative_to(ROOT), bad))
+ok("sem residuos de auto date/time (Variation)")
+
+# 8) colunas derivadas: declaradas e produzidas no M
+need = [
+    "DataOperacional",
+    "EquipeNormalizada",
+    "EhEquipeCampo",
+    "EhOperacional",
+    "EhImpossibilidade",
+    "DuracaoExecucaoMin",
+    "Turno",
+    "ChaveEquipeDiaTurno",
+]
+fcol = tables.get("F_atendimentos", set())
+fat = open(DEF / "tables" / "F_atendimentos.tmdl", encoding="utf-8").read()
+for n in need:
+    if n not in fcol:
+        fail("F_atendimentos sem coluna '%s' declarada" % n)
+    if ('"%s"' % n) not in fat:
+        fail("M de F_atendimentos nao produz '%s'" % n)
+ok("colunas derivadas declaradas e produzidas (8/8)")
+
+# 9) paginas e pbir
+pages = json.load(open(pages_dir / "pages.json", encoding="utf-8-sig"))
+for p in pages["pageOrder"]:
+    if not (pages_dir / p).exists():
+        fail("pages.json referencia pagina inexistente: " + p)
+ok("paginas do relatorio consistentes")
+pbir = json.load(open(PBI / "Workshop BI.Report" / "definition.pbir", encoding="utf-8-sig"))
+target = (PBI / "Workshop BI.Report" / pbir["datasetReference"]["byPath"]["path"]).resolve()
+if not target.exists():
+    fail("definition.pbir aponta para modelo inexistente")
+else:
+    ok("definition.pbir -> semantic model ok")
+
+# sumario
+for s in oks:
+    print("  [ok] " + s)
+if fails:
+    for s in fails:
+        print("  [XX] " + s)
+    print("\nRESULTADO: %d FALHA(S), %d OK" % (len(fails), len(oks)))
+    sys.exit(1)
+print("\nRESULTADO: TUDO OK (%d verificacoes)" % len(oks))

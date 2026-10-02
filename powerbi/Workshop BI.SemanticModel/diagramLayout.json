@@ -40,8 +40,61 @@
             "y": 2
           },
           "nodeIndex": "D_turnos",
+          "nodeLineageTag": "5de30bff-5266-4f0e-98af-9ec83e3855bb",
           "size": {
             "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 183,
+            "y": 420
+          },
+          "nodeIndex": "F_paradas",
+          "nodeLineageTag": "7e99e255-e758-4fee-90ff-54d29720814a",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 400,
+            "y": 420
+          },
+          "nodeIndex": "F_planejamento",
+          "nodeLineageTag": "9e7ca9bf-5023-4c75-8740-23d587a68e1f",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 900,
+            "y": 100
+          },
+          "nodeIndex": "D_Calendario",
+          "nodeLineageTag": "2d14ebd5-3c1c-43f1-b1e0-6a7bd6a5cc01",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 900,
+            "y": 300
+          },
+          "nodeIndex": "D_Motivo",
+          "nodeLineageTag": "3d14ebd5-3c1c-43f1-b1e0-6a7bd6a5cc03",
+          "size": {
+            "height": 170,
             "width": 234
           },
           "zIndex": 0

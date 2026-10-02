@@ -10,6 +10,22 @@ table D_Calendario
 		summarizeBy: none
 		sourceColumn: Date
 
-	partition D_Calendario = calculated
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition D_Calendario = m
 		mode: import
-		source = CALENDAR(DATE(2025, 1, 1), DATE(2027, 12, 31))
+		queryGroup: 'Tabelas Dimensão'
+		source = ```
+				let
+				    Datas = List.Dates(#date(2025, 1, 1), 1095, #duration(1, 0, 0, 0)),
+				    Tabela = Table.FromList(Datas, Splitter.SplitByNothing(), {"Date"}, null, ExtraValues.Error),
+				    Tipada = Table.TransformColumnTypes(Tabela, {{"Date", type date}})
+				in
+				    Tipada
+				```
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table

@@ -1,11 +1,16 @@
-relationship rel_equipe_atendimento
+relationship 81757508-24ee-4cd9-bbae-2354d24f4528
 	fromColumn: F_atendimentos.DESC_EQUIPE
 	toColumn: D_equipes.EQUIPES
 
-relationship rel_calendario_atendimento
+relationship 1f123f68-abfc-4b1c-a687-750459813d7c
+	joinOnDateBehavior: datePartOnly
 	fromColumn: F_atendimentos.DATA_ATENDIMENTO
 	toColumn: D_Calendario.Date
 
-relationship rel_motivo_atendimento
+relationship 5e70019c-3636-402f-a6b2-22c7af248ff7
+	fromColumn: F_atendimentos.Turno
+	toColumn: D_turnos.TURNO
+
+relationship 820e6d63-e171-4d26-a14c-96655cf5d55d
 	fromColumn: F_atendimentos.DESC_MOTIVO_ATENDIMENTO_PS
 	toColumn: D_Motivo.MotivoOriginal
