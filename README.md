@@ -33,4 +33,18 @@ Recomendações: manter o repositório **privado** e rotacionar a senha periodic
 - `cultures/pt-BR.tmdl` limpo (sem resíduos de auto date/time / "Variation").
 - Performance alinhada ao contrato vigente: **realizados ÷ meta de 15/equipe-dia**; métricas de tempo só como referência.
 - Unidades do modelo em **minutos** (paradas e metas). Turno (T1/T2/T3) atribuído na consulta.
-- Pendente: páginas completas do relatório; recorte de paradas à janela do turno; rateio da meta entre turnos; parâmetros para caminhos/credenciais.
+
+## Relatório (abas) — 2026-10-02
+
+Criadas/atualizadas 5 abas no relatório:
+
+1. **Visão Geral OPE** — OPE (gauge) + Disponibilidade/Performance/Qualidade (cartões), Realizados × meta, tendência por data, OPE por equipe, resumo por equipe e segmentadores (período/equipe).
+2. **Disponibilidade** — cartões (tempo base/disponível, paradas), tempo disponível × paradas por data, disponibilidade por equipe, paradas por motivo (min) e tabela de paradas registradas.
+3. **Performance** — cartões (realizados, meta, equipe-dia), realizados × meta por data/equipe e detalhe por equipe/dia.
+4. **Qualidade** — cartões, impossibilidades por data/motivo/equipe e tabela de atendimentos.
+5. **Análise por Equipe** — tabela consolidada D/P/Q/OPE por equipe.
+
+- **Paradas:** consulta `F_paradas` lê a lista **"Relatório de paradas CWB"** do site SharePoint *Cidades Inteligentes* (seleção por Id da lista, com fallback por nome). Requer login no tenant ao atualizar.
+
+## Pendências
+- Recorte de paradas à janela do turno; rateio da meta entre turnos; parâmetros para caminhos/credenciais.

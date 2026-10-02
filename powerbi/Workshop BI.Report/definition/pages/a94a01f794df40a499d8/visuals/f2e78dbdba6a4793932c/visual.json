@@ -1,0 +1,130 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "f2e78dbdba6a4793932c",
+  "position": {
+    "x": 16,
+    "y": 608,
+    "z": 0,
+    "height": 456,
+    "width": 1888,
+    "tabOrder": 6
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_atendimentos"
+                    }
+                  },
+                  "Property": "EquipeNormalizada"
+                }
+              },
+              "queryRef": "F_atendimentos.EquipeNormalizada",
+              "nativeQueryRef": "Equipe"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_atendimentos"
+                    }
+                  },
+                  "Property": "DataOperacional"
+                }
+              },
+              "queryRef": "F_atendimentos.DataOperacional",
+              "nativeQueryRef": "Data"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_atendimentos"
+                    }
+                  },
+                  "Property": "Realizados"
+                }
+              },
+              "queryRef": "F_atendimentos.Realizados",
+              "nativeQueryRef": "Realizados"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_atendimentos"
+                    }
+                  },
+                  "Property": "Válidos"
+                }
+              },
+              "queryRef": "F_atendimentos.Válidos",
+              "nativeQueryRef": "Válidos"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_atendimentos"
+                    }
+                  },
+                  "Property": "Meta Produção"
+                }
+              },
+              "queryRef": "F_atendimentos.Meta Produção",
+              "nativeQueryRef": "Meta"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_atendimentos"
+                    }
+                  },
+                  "Property": "Performance %"
+                }
+              },
+              "queryRef": "F_atendimentos.Performance %",
+              "nativeQueryRef": "Performance"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Detalhe por equipe/dia'"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

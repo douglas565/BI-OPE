@@ -202,6 +202,63 @@ if not target.exists():
 else:
     ok("definition.pbir -> semantic model ok")
 
+# 9b) visuais: referencias de campo (entidade/coluna/medida) de todos os visual.json
+all_measures = set(measures)
+
+
+def scan_fields(node, out):
+    if isinstance(node, dict):
+        for k, v in node.items():
+            if k in ("Column", "Measure") and isinstance(v, dict):
+                prop = v.get("Property") or node.get("Property")
+                ent = (v.get("Expression") or {}).get("SourceRef", {}).get("Entity")
+                if ent and prop:
+                    out.add((k, ent, prop))
+            elif k == "Aggregation" and isinstance(v, dict):
+                col = (v.get("Expression") or {}).get("Column") or v.get("Column") or {}
+                prop = col.get("Property")
+                ent = (col.get("Expression") or {}).get("SourceRef", {}).get("Entity")
+                if ent and prop:
+                    out.add(("Aggregation", ent, prop))
+            scan_fields(v, out)
+    elif isinstance(node, list):
+        for it in node:
+            scan_fields(it, out)
+
+
+nvis, nrefs = 0, 0
+for page_dir2 in sorted(p for p in pages_dir.iterdir() if p.is_dir()):
+    for vj in sorted((page_dir2 / "visuals").glob("*/visual.json")):
+        nvis += 1
+        vdata = json.load(open(vj, encoding="utf-8-sig"))
+        refs2 = set()
+        scan_fields(vdata, refs2)
+        for kind, ent, prop in sorted(refs2):
+            nrefs += 1
+            if ent not in tables:
+                fail("%s: entidade '%s' inexistente" % (vj.relative_to(ROOT), ent))
+            elif kind == "Measure":
+                if prop not in all_measures:
+                    fail("%s: medida '%s' inexistente" % (vj.relative_to(ROOT), prop))
+            else:
+                if prop not in tables[ent]:
+                    fail("%s: coluna '%s[%s]' inexistente" % (vj.relative_to(ROOT), ent, prop))
+ok("visuais: %d arquivos, %d referencias de campo verificadas" % (nvis, nrefs))
+
+# 9c) tema registrado
+rp = json.load(open(PBI / "Workshop BI.Report" / "definition" / "report.json", encoding="utf-8-sig"))
+ct = (rp.get("themeCollection") or {}).get("customTheme")
+if ct:
+    tpath = PBI / "Workshop BI.Report" / "StaticResources" / "RegisteredResources" / (ct.get("name", "") + ".json")
+    if ct.get("type") != "RegisteredResources":
+        fail("report.json: customTheme.type != RegisteredResources")
+    elif not tpath.exists():
+        fail("report.json: tema registrado sem arquivo em StaticResources/RegisteredResources")
+    else:
+        ok("tema '%s' registrado e presente" % ct.get("name"))
+if rp.get("filterConfig", {}).get("filters"):
+    fail("report.json: filtro global residual (deve estar vazio)")
+
 # sumario
 for s in oks:
     print("  [ok] " + s)

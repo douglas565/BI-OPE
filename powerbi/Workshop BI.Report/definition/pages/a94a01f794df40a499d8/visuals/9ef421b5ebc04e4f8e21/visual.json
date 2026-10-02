@@ -1,0 +1,111 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "9ef421b5ebc04e4f8e21",
+  "position": {
+    "x": 962,
+    "y": 202,
+    "z": 0,
+    "height": 390,
+    "width": 942,
+    "tabOrder": 5
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_atendimentos"
+                    }
+                  },
+                  "Property": "EquipeNormalizada"
+                }
+              },
+              "queryRef": "F_atendimentos.EquipeNormalizada",
+              "nativeQueryRef": "Equipe",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_atendimentos"
+                    }
+                  },
+                  "Property": "Realizados"
+                }
+              },
+              "queryRef": "F_atendimentos.Realizados",
+              "nativeQueryRef": "Realizados"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_atendimentos"
+                    }
+                  },
+                  "Property": "Válidos"
+                }
+              },
+              "queryRef": "F_atendimentos.Válidos",
+              "nativeQueryRef": "Válidos"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "F_atendimentos"
+                  }
+                },
+                "Property": "Realizados"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Realizados × válidos por equipe'"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

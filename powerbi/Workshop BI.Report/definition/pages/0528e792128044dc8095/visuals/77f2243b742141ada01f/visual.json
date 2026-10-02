@@ -1,0 +1,190 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "77f2243b742141ada01f",
+  "position": {
+    "x": 16,
+    "y": 16,
+    "z": 0,
+    "height": 1048,
+    "width": 1888,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_atendimentos"
+                    }
+                  },
+                  "Property": "EquipeNormalizada"
+                }
+              },
+              "queryRef": "F_atendimentos.EquipeNormalizada",
+              "nativeQueryRef": "Equipe"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_atendimentos"
+                    }
+                  },
+                  "Property": "Disponibilidade %"
+                }
+              },
+              "queryRef": "F_atendimentos.Disponibilidade %",
+              "nativeQueryRef": "Disponibilidade"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_atendimentos"
+                    }
+                  },
+                  "Property": "Performance %"
+                }
+              },
+              "queryRef": "F_atendimentos.Performance %",
+              "nativeQueryRef": "Performance"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_atendimentos"
+                    }
+                  },
+                  "Property": "Qualidade %"
+                }
+              },
+              "queryRef": "F_atendimentos.Qualidade %",
+              "nativeQueryRef": "Qualidade"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_atendimentos"
+                    }
+                  },
+                  "Property": "OPE %"
+                }
+              },
+              "queryRef": "F_atendimentos.OPE %",
+              "nativeQueryRef": "OPE"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_atendimentos"
+                    }
+                  },
+                  "Property": "Realizados"
+                }
+              },
+              "queryRef": "F_atendimentos.Realizados",
+              "nativeQueryRef": "Realizados"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_atendimentos"
+                    }
+                  },
+                  "Property": "Impossibilidades"
+                }
+              },
+              "queryRef": "F_atendimentos.Impossibilidades",
+              "nativeQueryRef": "Impossibilidades"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_atendimentos"
+                    }
+                  },
+                  "Property": "Paradas Min"
+                }
+              },
+              "queryRef": "F_atendimentos.Paradas Min",
+              "nativeQueryRef": "Paradas (min)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_atendimentos"
+                    }
+                  },
+                  "Property": "Tempo Disponível Min"
+                }
+              },
+              "queryRef": "F_atendimentos.Tempo Disponível Min",
+              "nativeQueryRef": "Tempo disponível (min)"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "F_atendimentos"
+                  }
+                },
+                "Property": "OPE %"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Resumo por equipe (OPE)'"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

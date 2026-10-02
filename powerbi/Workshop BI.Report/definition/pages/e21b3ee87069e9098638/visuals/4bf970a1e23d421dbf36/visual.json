@@ -1,0 +1,130 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "4bf970a1e23d421dbf36",
+  "position": {
+    "x": 962,
+    "y": 608,
+    "z": 0,
+    "height": 456,
+    "width": 942,
+    "tabOrder": 7
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_paradas"
+                    }
+                  },
+                  "Property": "Equipe"
+                }
+              },
+              "queryRef": "F_paradas.Equipe",
+              "nativeQueryRef": "Equipe"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_paradas"
+                    }
+                  },
+                  "Property": "Início da parada"
+                }
+              },
+              "queryRef": "F_paradas.Início da parada",
+              "nativeQueryRef": "Início"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_paradas"
+                    }
+                  },
+                  "Property": "Fim da parada"
+                }
+              },
+              "queryRef": "F_paradas.Fim da parada",
+              "nativeQueryRef": "Fim"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_paradas"
+                    }
+                  },
+                  "Property": "Tempo de parada"
+                }
+              },
+              "queryRef": "F_paradas.Tempo de parada",
+              "nativeQueryRef": "Minutos"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_paradas"
+                    }
+                  },
+                  "Property": "Tipo da parada"
+                }
+              },
+              "queryRef": "F_paradas.Tipo da parada",
+              "nativeQueryRef": "Tipo"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_paradas"
+                    }
+                  },
+                  "Property": "Motivo"
+                }
+              },
+              "queryRef": "F_paradas.Motivo",
+              "nativeQueryRef": "Motivo"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Paradas registradas'"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}
