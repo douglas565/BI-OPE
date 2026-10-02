@@ -160,6 +160,15 @@ for tf in tmdl_all:
             fail("%s: residuo proibido '%s'" % (tf.relative_to(ROOT), bad))
 ok("sem residuos de auto date/time (Variation)")
 
+# 7b) cultures: linguisticMetadata com blob JSON exige contentType: json
+cf = DEF / "cultures" / "pt-BR.tmdl"
+if cf.exists():
+    c = open(cf, encoding="utf-8").read()
+    if "linguisticMetadata" in c and "{" in c and "contentType: json" not in c:
+        fail("cultures/pt-BR.tmdl: linguisticMetadata sem 'contentType: json' (valida como Xml)")
+    else:
+        ok("cultures: contentType json ok")
+
 # 8) colunas derivadas: declaradas e produzidas no M
 need = [
     "DataOperacional",
