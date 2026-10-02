@@ -46,5 +46,10 @@ Criadas/atualizadas 5 abas no relatório:
 
 - **Paradas:** consulta `F_paradas` lê a lista **"Relatório de paradas CWB"** do site SharePoint *Cidades Inteligentes* (seleção por Id da lista, com fallback por nome). Requer login no tenant ao atualizar.
 
+## Correções 2026-10-02 (pós-teste no Desktop)
+
+- **Medidas DAX:** referências entre medidas estavam com apóstrofo (`['Nome']`) — inválido no DAX e causa dos erros "Missing_References / campos que precisam ser corrigidos". Todas as 11 medidas foram corrigidas para `[Nome]`. Validador agora rejeita esse padrão.
+- **Consulta Exati (`F_atendimentos`):** a URL agora é montada com `[Query = [...]]` (encoding garantido dos parâmetros) em vez de concatenar querystring; se a resposta vier sem `PONTOS_ATENDIDOS`, o erro mostra o conteúdo retornado pela API (auto-diagnóstico).
+
 ## Pendências
 - Recorte de paradas à janela do turno; rateio da meta entre turnos; parâmetros para caminhos/credenciais.

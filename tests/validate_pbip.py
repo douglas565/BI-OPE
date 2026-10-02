@@ -152,6 +152,19 @@ for mname, expr in measures.items():
             fail("medida '%s': referencia %s[%s] sem coluna" % (mname, t, c))
 ok("%d medidas verificadas" % len(measures))
 
+# 6b) medidas DAX: refs de medida sem apostrofos e resolviveis
+allcols = set()
+for tcols in tables.values():
+    allcols |= tcols
+for mname, expr in measures.items():
+    if "['" in expr:
+        fail("medida '%s': referencia com apostrofo ['...'] (nao resolve no DAX)" % mname)
+    e = re.sub(r'"[^"]*"', '""', expr)
+    for ref in sorted(set(re.findall(r"(?<![A-Za-z0-9_\]\)'])\[([^\[\]]+)\]", e))):
+        if ref not in measures and ref not in allcols:
+            fail("medida '%s': referencia [%s] nao resolve (nem medida nem coluna)" % (mname, ref))
+ok("medidas DAX: refs entre colchetes resolviveis")
+
 # 7) residuos proibidos
 for tf in tmdl_all:
     txt = open(tf, encoding="utf-8", errors="replace").read()

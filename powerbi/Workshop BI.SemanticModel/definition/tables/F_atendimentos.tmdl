@@ -446,7 +446,7 @@ table F_atendimentos
 		formatString: 0
 		lineageTag: 857992cc-1b3b-4f70-b0d2-d424576f3b32
 
-	measure 'Meta Produção' = 15 * ['Equipe-dia']
+	measure 'Meta Produção' = 15 * [Equipe-dia]
 		formatString: 0
 		lineageTag: fc4a5631-5e52-4909-8a4d-c083abaed383
 
@@ -466,11 +466,11 @@ table F_atendimentos
 		formatString: 0
 		lineageTag: f5159d7e-eb2f-4b60-b637-cd5d06086f1d
 
-	measure 'Tempo Disponível Min' = MAX( 0, ['Tempo Base Min'] - ['Paradas Min'] )
+	measure 'Tempo Disponível Min' = MAX( 0, [Tempo Base Min] - [Paradas Min] )
 		formatString: 0
 		lineageTag: f2357eeb-9520-419b-9cef-225083a956e7
 
-	measure 'Disponibilidade %' = DIVIDE( ['Tempo Disponível Min'], ['Tempo Base Min'] )
+	measure 'Disponibilidade %' = DIVIDE( [Tempo Disponível Min], [Tempo Base Min] )
 		formatString: 0.0%
 		lineageTag: 43dbf102-d25b-4733-8c4c-fcfcc85d386a
 
@@ -478,15 +478,15 @@ table F_atendimentos
 		formatString: 0
 		lineageTag: a00a6400-3a28-46ca-a696-073888bbe61d
 
-	measure 'Tempo Necessário Min' = ['Meta Tempo Min'] * [Válidos]
+	measure 'Tempo Necessário Min' = [Meta Tempo Min] * [Válidos]
 		formatString: 0
 		lineageTag: 5f3ebf1f-2984-42da-9d4f-863ced03eb91
 
-	measure 'Performance %' = DIVIDE( [Realizados], ['Meta Produção'] )
+	measure 'Performance %' = DIVIDE( [Realizados], [Meta Produção] )
 		formatString: 0.0%
 		lineageTag: 79030dcb-8a03-42b2-927f-2a6ef8301c93
 
-	measure 'Performance (Tempo) %' = DIVIDE( ['Tempo Necessário Min'], ['Tempo Disponível Min'] )
+	measure 'Performance (Tempo) %' = DIVIDE( [Tempo Necessário Min], [Tempo Disponível Min] )
 		formatString: 0.0%
 		lineageTag: 7bf9c600-e300-477d-bfdb-e7e505d2e6e5
 
@@ -494,23 +494,23 @@ table F_atendimentos
 		formatString: 0.0%
 		lineageTag: 3be5b71a-4f6c-4421-a94d-171864637269
 
-	measure 'OPE %' = ['Disponibilidade %'] * ['Performance %'] * ['Qualidade %']
+	measure 'OPE %' = [Disponibilidade %] * [Performance %] * [Qualidade %]
 		formatString: 0.0%
 		lineageTag: 4c210590-084f-4116-9c72-26b943762966
 
-	measure 'Disponibilidade (Limitada) %' = IF(['Disponibilidade %'] > 1, 1, ['Disponibilidade %'])
+	measure 'Disponibilidade (Limitada) %' = IF([Disponibilidade %] > 1, 1, [Disponibilidade %])
 		formatString: 0.0%
 		lineageTag: 422c4550-20f4-4f49-af05-195de92a9c9e
 
-	measure 'Performance (Limitada) %' = IF(['Performance %'] > 1, 1, ['Performance %'])
+	measure 'Performance (Limitada) %' = IF([Performance %] > 1, 1, [Performance %])
 		formatString: 0.0%
 		lineageTag: 49920faa-b9b5-4a32-9c7a-d23a628128c2
 
-	measure 'Qualidade (Limitada) %' = IF(['Qualidade %'] > 1, 1, ['Qualidade %'])
+	measure 'Qualidade (Limitada) %' = IF([Qualidade %] > 1, 1, [Qualidade %])
 		formatString: 0.0%
 		lineageTag: 931b713a-0d26-4d21-9af7-2fc6f1967a07
 
-	measure 'OPE (Limitado) %' = ['Disponibilidade (Limitada) %'] * ['Performance (Limitada) %'] * ['Qualidade (Limitada) %']
+	measure 'OPE (Limitado) %' = [Disponibilidade (Limitada) %] * [Performance (Limitada) %] * [Qualidade (Limitada) %]
 		formatString: 0.0%
 		lineageTag: d0ec7edf-23aa-4af7-9ecb-d767c5d0f3b3
 
@@ -548,10 +548,11 @@ table F_atendimentos
 				    ExpandToken = Table.ExpandRecordColumn(ToTableLogin, "Value", {"AUTH_TOKEN"}, {"AUTH_TOKEN"}),
 				    AuthToken = List.Last(Record.FieldValues(ExpandToken{0})),
 				    RelativeURL = "/guia/command/engiecuritiba/relatoriosHouer.json",
-				    URL = RelativeURL & "?CMD_SCRIPT_PARAMETERS={""OPCAO"":""4"",""PAGE"":0,""PAGE_SIZE"":0,""DATA_INICIO"":""01/06/2026""}&auth_token=" & AuthToken,
-				    Data = Json.Document(Web.Contents("https://engiecuritiba.exati.com.br", [RelativePath = URL])),
+				    Parametros = "{""OPCAO"":""4"",""PAGE"":0,""PAGE_SIZE"":0,""DATA_INICIO"":""01/06/2026""}",
+				    // Query (record) garante o encoding dos parametros na URL (evita resposta sem PONTOS_ATENDIDOS)
+				    Data = Json.Document(Web.Contents("https://engiecuritiba.exati.com.br", [RelativePath = RelativeURL, Query = [CMD_SCRIPT_PARAMETERS = Parametros, auth_token = AuthToken]])),
 				    RAIZ = Data[RAIZ],
-				    PONTOS_ATENDIDOS = RAIZ[PONTOS_ATENDIDOS],
+				    PONTOS_ATENDIDOS = if Record.HasFields(RAIZ, "PONTOS_ATENDIDOS") then RAIZ[PONTOS_ATENDIDOS] else error ("Resposta da API Exati sem PONTOS_ATENDIDOS. Conteudo: " & Text.FromBinary(Json.FromValue(RAIZ))),
 				    PONTO_ATENDIDO = PONTOS_ATENDIDOS[PONTO_ATENDIDO],
 				    #"Convertido para Tabela" = Table.FromList(PONTO_ATENDIDO, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
 				    #"Column1 Expandido" = Table.ExpandRecordColumn(#"Convertido para Tabela", "Column1", {"NUMERO_PROTOCOLO", "TOTAL_ATENDIMENTOS", "TOTAL_CONFIRMADOS", "TOTAL_DESCONFIRMADOS", "DIST", "ID_POSICAO_GEOGRAFICA_EQUIPE", "ID_ATENDIMENTO_PS", "ID_POSICAO_GEOGRAFICA_PONTO", "LATITUDE_TOTAL_PONTO", "LONGITUDE_TOTAL_PONTO", "LATITUDE_TOTAL_EQUIPE", "LONGITUDE_TOTAL_EQUIPE", "NUMERO_LOCAL_INICIAL", "ID_PARQUE_SERVICO", "ENDERECO_LIVRE", "NOME_BAIRRO", "NOME_MUNICIPIO", "DESC_TIPO_LOGRADOURO", "NOME_LOGRADOURO", "DESC_STATUS_ATENDIMENTO_PS", "DESC_MOTIVO_ATENDIMENTO_PS", "NOME_LOGRADOURO_COMPLETO", "ID_PONTO_SERVICO", "DESC_SOLUCAO_ATENDIMENTO_PS", "DATA_HORA_INICIO_ATENDIMENTO", "DATA_HORA_CONCLUSAO_ATENDIMENTO", "DATA_INICIO_ATENDIMENTO", "DATA_CONCLUSAO_ATENDIMENTO", "HORA_INICIO", "HORA_CONCLUSAO", "DATA_ATENDIMENTO", "ID_AUTENT_CONFIRMACAO", "ID_DOMINIO", "DESC_DOMINIO", "OBS", "DESC_PRIORIDADE_PONTO_OCORR", "DESC_EQUIPE", "EMPRESA_USUARIA_EQUIPE", "NOME_REGIAO", "NOME_PARQUE_SERVICO", "VEICULOS", "DESC_TIPO_OCORRENCIA", "NUMERO_IDENTIFICACAO", "ENDERECO"}, {"NUMERO_PROTOCOLO", "TOTAL_ATENDIMENTOS", "TOTAL_CONFIRMADOS", "TOTAL_DESCONFIRMADOS", "DIST", "ID_POSICAO_GEOGRAFICA_EQUIPE", "ID_ATENDIMENTO_PS", "ID_POSICAO_GEOGRAFICA_PONTO", "LATITUDE_TOTAL_PONTO", "LONGITUDE_TOTAL_PONTO", "LATITUDE_TOTAL_EQUIPE", "LONGITUDE_TOTAL_EQUIPE", "NUMERO_LOCAL_INICIAL", "ID_PARQUE_SERVICO", "ENDERECO_LIVRE", "NOME_BAIRRO", "NOME_MUNICIPIO", "DESC_TIPO_LOGRADOURO", "NOME_LOGRADOURO", "DESC_STATUS_ATENDIMENTO_PS", "DESC_MOTIVO_ATENDIMENTO_PS", "NOME_LOGRADOURO_COMPLETO", "ID_PONTO_SERVICO", "DESC_SOLUCAO_ATENDIMENTO_PS", "DATA_HORA_INICIO_ATENDIMENTO", "DATA_HORA_CONCLUSAO_ATENDIMENTO", "DATA_INICIO_ATENDIMENTO", "DATA_CONCLUSAO_ATENDIMENTO", "HORA_INICIO", "HORA_CONCLUSAO", "DATA_ATENDIMENTO", "ID_AUTENT_CONFIRMACAO", "ID_DOMINIO", "DESC_DOMINIO", "OBS", "DESC_PRIORIDADE_PONTO_OCORR", "DESC_EQUIPE", "EMPRESA_USUARIA_EQUIPE", "NOME_REGIAO", "NOME_PARQUE_SERVICO", "VEICULOS", "DESC_TIPO_OCORRENCIA", "NUMERO_IDENTIFICACAO", "ENDERECO"}),
