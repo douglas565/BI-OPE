@@ -68,14 +68,34 @@ for page_dir in sorted(p for p in pages_dir.iterdir() if p.is_dir()):
             fail("JSON invalido: %s -> %s" % (vj.relative_to(ROOT), e))
 ok("visuals do relatorio: JSON ok")
 
-# 2) TMDL: indentacao (somente abas, com espacos extras permitidos apenas dentro dos blocos M)
+# 2) TMDL: indentacao — fora de corpos de conteudo, somente abas.
+#    Corpos de MEDIDA/COLUNA (DAX): SOMENTE abas (espacos quebram o parse — caso Paradas Min).
+#    Corpos de M/JSON (source=, linguisticMetadata=): verbatim, espacos internos permitidos.
 tmdl_all = sorted(DEF.rglob("*.tmdl"))
 for tf in tmdl_all:
-    for i, ln in enumerate(open(tf, encoding="utf-8").read().split("\n"), 1):
+    lines = open(tf, encoding="utf-8").read().split("\n")
+    in_fence = False
+    content = None  # (decl_tabs, strict)
+    for i, ln in enumerate(lines, 1):
+        if "```" in ln:
+            in_fence = not in_fence
+            continue
+        if in_fence or not ln.strip():
+            continue
+        tabs = len(ln) - len(ln.lstrip("\t"))
         ws = ln[: len(ln) - len(ln.lstrip(" \t"))]
-        if ws and not re.fullmatch(r"\t* *", ws):
-            fail("%s:%d indentacao mista (use abas)" % (tf.name, i))
-ok("indentacao dos TMDL por abas")
+        if content is not None:
+            decl_tabs, strict = content
+            if tabs > decl_tabs:
+                if strict and not re.fullmatch(r"\t+", ws):
+                    fail("%s:%d indentacao invalida no corpo DAX (use apenas abas)" % (tf.name, i))
+                continue
+            content = None  # saiu do corpo; segue para checagem normal
+        if ws and not re.fullmatch(r"\t+", ws):
+            fail("%s:%d indentacao invalida fora de bloco M (use apenas abas)" % (tf.name, i))
+        if ln.rstrip().endswith("="):
+            content = (tabs, bool(re.match(r"^\t+(measure|column)\b", ln)))
+ok("indentacao dos TMDL por abas (corpos DAX estritos; M/JSON verbatim)")
 
 # 2b) annotations em arquivos de tabela devem estar indentadas (filhas da tabela)
 for tf in sorted((DEF / "tables").glob("*.tmdl")):
@@ -83,6 +103,28 @@ for tf in sorted((DEF / "tables").glob("*.tmdl")):
         if re.match(r"^annotation\b", ln):
             fail("%s:%d annotation em coluna 0 (deve ser filha da tabela)" % (tf.name, i))
 ok("annotations de tabela indentadas")
+
+# 2c) corpos multi-linha (measure/column com '=' no fim): >= 2 niveis (abas) mais fundo que a declaracao
+for tf in tmdl_all:
+    lines = open(tf, encoding="utf-8").read().split("\n")
+    in_code = False
+    for i, ln in enumerate(lines):
+        if "```" in ln:
+            in_code = not in_code
+            continue
+        if in_code:
+            continue
+        if re.match(r"^\t+(measure|column)\b", ln) and ln.rstrip().endswith("="):
+            tabs = len(ln) - len(ln.lstrip("\t"))
+            j = i + 1
+            while j < len(lines) and not lines[j].strip():
+                j += 1
+            if j < len(lines):
+                nxt = lines[j]
+                nt = len(nxt) - len(nxt.lstrip("\t"))
+                if nxt.strip() and nt < tabs + 2:
+                    fail("%s:%d corpo de expressao raso (esperado >= %d abas, tem %d)" % (tf.name, j + 1, tabs + 2, nt))
+ok("corpos multi-linha com indentacao profunda (>=2 niveis)")
 
 # 3) tabelas/colunas/medidas
 tables, measures = {}, {}

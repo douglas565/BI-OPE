@@ -471,30 +471,30 @@ table F_atendimentos
 		lineageTag: 968ea990-f606-4b7b-a97f-10d9d2832c3e
 
 	measure 'Paradas Min' =
-        VAR BaseTurnos =
-            SUMMARIZE(
-                CALCULATETABLE( F_atendimentos, F_atendimentos[EhEquipeManutencao] = TRUE(), F_atendimentos[EhOperacional] = TRUE() ),
-                F_atendimentos[ChaveEquipeDiaTurno]
-            )
-        RETURN
-            SUMX(
-                BaseTurnos,
-                VAR Ch = F_atendimentos[ChaveEquipeDiaTurno]
-                RETURN
-                    IF(
-                        NOT ISBLANK(Ch),
-                        COALESCE(
-                            CALCULATE(
-                                SUM( F_paradas[Tempo de parada] ),
-                                REMOVEFILTERS( F_atendimentos ),
-                                TREATAS( { Ch }, F_paradas[ChaveEquipeDiaTurno] ),
-                                F_paradas[EhNaoProgramada] = TRUE()
-                            ),
-                            0
-                        ),
-                        0
-                    )
-            )
+			VAR BaseTurnos =
+				SUMMARIZE(
+					CALCULATETABLE( F_atendimentos, F_atendimentos[EhEquipeManutencao] = TRUE(), F_atendimentos[EhOperacional] = TRUE() ),
+					F_atendimentos[ChaveEquipeDiaTurno]
+				)
+			RETURN
+				SUMX(
+					BaseTurnos,
+					VAR Ch = F_atendimentos[ChaveEquipeDiaTurno]
+					RETURN
+						IF(
+							NOT ISBLANK(Ch),
+							COALESCE(
+								CALCULATE(
+									SUM( F_paradas[Tempo de parada] ),
+									REMOVEFILTERS( F_atendimentos ),
+									TREATAS( { Ch }, F_paradas[ChaveEquipeDiaTurno] ),
+									F_paradas[EhNaoProgramada] = TRUE()
+								),
+								0
+							),
+							0
+						)
+				)
 		formatString: 0
 		lineageTag: f5159d7e-eb2f-4b60-b637-cd5d06086f1d
 
