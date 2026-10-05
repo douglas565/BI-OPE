@@ -187,12 +187,24 @@ need = [
     "DataOperacional",
     "EquipeNormalizada",
     "EhEquipeCampo",
+    "EhEquipeManutencao",
     "EhOperacional",
     "EhImpossibilidade",
     "DuracaoExecucaoMin",
     "Turno",
     "ChaveEquipeDiaTurno",
 ]
+
+# 8b) colunas derivadas de F_paradas
+need_paradas = ["EquipeNormalizada", "EhNaoProgramada"]
+fpar = tables.get("F_paradas", set())
+fpar_text = open(DEF / "tables" / "F_paradas.tmdl", encoding="utf-8").read()
+for n in need_paradas:
+    if n not in fpar:
+        fail("F_paradas sem coluna '%s' declarada" % n)
+    if ('"%s"' % n) not in fpar_text:
+        fail("M de F_paradas nao produz '%s'" % n)
+ok("colunas derivadas de F_paradas declaradas e produzidas (2/2)")
 fcol = tables.get("F_atendimentos", set())
 fat = open(DEF / "tables" / "F_atendimentos.tmdl", encoding="utf-8").read()
 for n in need:

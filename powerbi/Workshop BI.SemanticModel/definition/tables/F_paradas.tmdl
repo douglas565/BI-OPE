@@ -232,6 +232,22 @@ table F_paradas
 
 		annotation PBI_FormatHint = {"isGeneralNumber":true}
 
+	column EquipeNormalizada
+		dataType: string
+		lineageTag: 7a9b1c2d-3e4f-5a6b-7c8d-9e0f1a2b3c4d
+		summarizeBy: none
+		sourceColumn: EquipeNormalizada
+
+		annotation SummarizationSetBy = Automatic
+
+	column EhNaoProgramada
+		dataType: boolean
+		lineageTag: 8b0c2d3e-4f5a-6b7c-8d9e-0f1a2b3c4d5e
+		summarizeBy: none
+		sourceColumn: EhNaoProgramada
+
+		annotation SummarizationSetBy = Automatic
+
 	partition F_paradas = m
 		mode: import
 		queryGroup: 'Tabela Fato'
@@ -243,9 +259,11 @@ table F_paradas
 				    #"Lista Paradas" = if TentaId[HasError] then Table.SelectRows(Fonte, each Text.Contains([Name], "paradas", Comparer.OrdinalIgnoreCase)){0}[Items] else TentaId[Value],
 				    #"Tempo de Parada" = Table.AddColumn(#"Lista Paradas", "Tempo de parada", each if [#"Início da parada"] = null or [#"Fim da parada"] = null then null else [#"Fim da parada"] - [#"Início da parada"]),
 				    #"Tipo Alterado" = Table.TransformColumnTypes(#"Tempo de Parada", {{"Tempo de parada", type duration}}),
-				    #"Minutos de Parada" = Table.TransformColumns(#"Tipo Alterado", {{"Tempo de parada", Duration.TotalMinutes, type number}})
+				    #"Minutos de Parada" = Table.TransformColumns(#"Tipo Alterado", {{"Tempo de parada", Duration.TotalMinutes, type number}}),
+				    EquipeNormalizada = Table.AddColumn(#"Minutos de Parada", "EquipeNormalizada", each let e = if [Equipe] = null then "" else [Equipe], p = Text.PositionOf(e, " | ") in Text.Trim(if p >= 0 then Text.Start(e, p) else e), type text),
+				    EhNaoProgramada = Table.AddColumn(EquipeNormalizada, "EhNaoProgramada", each let t = if [#"Tipo da parada"] = null then "" else Text.Upper([#"Tipo da parada"]) in Text.Contains(t, "NÃO PROGRAMAD") or Text.Contains(t, "IMPREVIST") or Text.Contains(t, "CLIMA"), type logical)
 				in
-				    #"Minutos de Parada"
+				    EhNaoProgramada
 				```
 
 	annotation PBI_NavigationStepName = Navegação

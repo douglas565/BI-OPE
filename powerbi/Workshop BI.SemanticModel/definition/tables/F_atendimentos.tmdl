@@ -504,7 +504,8 @@ table F_atendimentos
                     CALCULATE(
                         SUM( F_paradas[Tempo de parada] ),
                         REMOVEFILTERS( F_atendimentos ),
-                        TREATAS( { Eq }, F_paradas[Equipe] ),
+                        TREATAS( { Eq }, F_paradas[EquipeNormalizada] ),
+                        F_paradas[EhNaoProgramada] = TRUE(),
                         F_paradas[Início da parada] >= InicioTurno,
                         F_paradas[Fim da parada] <= FimTurno
                     )
@@ -622,7 +623,7 @@ table F_atendimentos
 				    DataOperacional = Table.AddColumn(#"Início Válido", "DataOperacional", each if Time.From([DATA_HORA_INICIO_ATENDIMENTO]) <= #time(6, 30, 0) then Date.AddDays(Date.From([DATA_HORA_INICIO_ATENDIMENTO]), -1) else Date.From([DATA_HORA_INICIO_ATENDIMENTO]), type date),
 				    EquipeNormalizada = Table.AddColumn(DataOperacional, "EquipeNormalizada", each let e = if [DESC_EQUIPE] = null then "" else [DESC_EQUIPE], p = Text.PositionOf(e, " | ") in Text.Trim(if p >= 0 then Text.Start(e, p) else e), type text),
 				    EhEquipeCampo = Table.AddColumn(EquipeNormalizada, "EhEquipeCampo", each not Text.Contains([EquipeNormalizada], "CCO", Combiner.OrdinalIgnoreCase), type logical),
-            EhEquipeManutencao = Table.AddColumn(EhEquipeCampo, "EhEquipeManutencao", each not Text.Contains([EquipeNormalizada], "CCO", Combiner.OrdinalIgnoreCase) and [EquipeNormalizada] <> "", type logical),
+            EhEquipeManutencao = Table.AddColumn(EhEquipeCampo, "EhEquipeManutencao", each Text.StartsWith([EquipeNormalizada], "Man-", Comparer.OrdinalIgnoreCase), type logical),
 				    MinutoDia = Table.AddColumn(EhEquipeManutencao, "MinutoDia", each Time.Hour([DATA_HORA_INICIO_ATENDIMENTO]) * 60 + Time.Minute([DATA_HORA_INICIO_ATENDIMENTO]), type number),
 				    Turno = Table.AddColumn(MinutoDia, "Turno", each if [MinutoDia] <= 360 then "T3" else if [MinutoDia] <= 449 then "Fora" else if [MinutoDia] <= 990 then "T1" else if [MinutoDia] <= 1380 then "T2" else "T3", type text),
 				    EhOperacional = Table.AddColumn(Turno, "EhOperacional", each [Turno] <> "Fora", type logical),

@@ -51,5 +51,12 @@ Criadas/atualizadas 5 abas no relatório:
 - **Medidas DAX:** referências entre medidas estavam com apóstrofo (`['Nome']`) — inválido no DAX e causa dos erros "Missing_References / campos que precisam ser corrigidos". Todas as 11 medidas foram corrigidas para `[Nome]`. Validador agora rejeita esse padrão.
 - **Consulta Exati (`F_atendimentos`):** URL montada com `[Query = [...]]`; **retry robusto**: até 6 tentativas com re-login e esperas de 20/40/60/80/100 s (~5 min), com **`IsRetry = true`** em cada chamada (o Power Query cacheia respostas por URL — sem isso, tentativas repetidas podiam ler a resposta antiga do cache sem consultar o servidor) e **timeout de 5 min** para o download (junho ≈ 24 MB). Causa raiz dos bloqueios no refresh: **ATD-BUS-0012** — a API aceita **uma única execução por usuário** e o refresh do Desktop dispara avaliações paralelas (pré-visualização + carga; fato + dimensões), que colidem. Janela de dados: `DATA_INICIO` em `Parametros` (hoje `01/06/2026`).
 
+## Correções 2026-10-05 (demandas BrunaTrento)
+
+- **OPE somente para equipes de manutenção:** a coluna `EhEquipeManutencao` em `F_atendimentos` agora usa `Text.StartsWith([EquipeNormalizada], "Man-", Comparer.OrdinalIgnoreCase)`. As medidas base (`Realizados`, `Equipe-dia`, `Tempo Base Min`, `Paradas Min`) e os indicadores (`Disponibilidade %`, `Performance %`, `Qualidade %`, `OPE %`) filtram por essa flag. Equipes de inspeção (`INSP-*`), teste (`Teste Exati`) e outras não entram mais no cálculo.
+- **Disponibilidade limitada a 100%:** a fórmula da Bruna `(turno − intervalos − paradas não programadas) / (turno − intervalos)` é respeitada pela arquitetura atual (`Tempo Base Min` = turno − intervalos; `Tempo Disponível Min` = base − paradas). A medida `Disponibilidade %` usa `MIN(1, ...)` como proteção final.
+- **Paradas não programadas:** em `F_paradas` foram criadas as colunas `EquipeNormalizada` (remove sufixo `" | EMPRESA"`) e `EhNaoProgramada` (detecta `"NÃO PROGRAMAD"`, `"IMPREVIST"` ou `"CLIMA"`). A medida `Paradas Min` filtra `F_paradas[EhNaoProgramada] = TRUE()` e vincula pela equipe normalizada, garantindo que paradas programadas/testes não descontem disponibilidade.
+- **OPE distorcido em filtro de um dia:** com as correções acima, o denominador fica correto para cada equipe-dia e a base inclui apenas equipes de manutenção, eliminando os valores impossíveis (>100%) quando se seleciona uma data isolada.
+
 ## Pendências
-- Recorte de paradas à janela do turno; rateio da meta entre turnos; parâmetros para caminhos/credenciais.
+- Rateio da meta entre turnos (hoje 15 por equipe-dia, independente do número de turnos); recorte de paradas à janela do turno; parâmetros para caminhos/credenciais.
