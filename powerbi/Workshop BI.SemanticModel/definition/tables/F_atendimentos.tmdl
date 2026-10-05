@@ -474,40 +474,18 @@ table F_atendimentos
         VAR BaseTurnos =
             SUMMARIZE(
                 CALCULATETABLE( F_atendimentos, F_atendimentos[EhEquipeManutencao] = TRUE(), F_atendimentos[EhOperacional] = TRUE() ),
-                F_atendimentos[EquipeNormalizada],
-                F_atendimentos[DataOperacional],
-                F_atendimentos[Turno]
+                F_atendimentos[ChaveEquipeDiaTurno]
             )
         RETURN
             SUMX(
                 BaseTurnos,
-                VAR Eq = F_atendimentos[EquipeNormalizada]
-                VAR Dt = F_atendimentos[DataOperacional]
-                VAR Tn = F_atendimentos[Turno]
-                VAR InicioTurno =
-                    SWITCH(
-                        Tn,
-                        "T1", Dt + TIME(7, 30, 0),
-                        "T2", Dt + TIME(14, 0, 0),
-                        "T3", Dt + TIME(22, 0, 0) - 1,
-                        BLANK()
-                    )
-                VAR FimTurno =
-                    SWITCH(
-                        Tn,
-                        "T1", Dt + TIME(16, 30, 0),
-                        "T2", Dt + TIME(23, 0, 0),
-                        "T3", Dt + TIME(6, 0, 0),
-                        BLANK()
-                    )
+                VAR Ch = F_atendimentos[ChaveEquipeDiaTurno]
                 RETURN
                     CALCULATE(
                         SUM( F_paradas[Tempo de parada] ),
                         REMOVEFILTERS( F_atendimentos ),
-                        TREATAS( { Eq }, F_paradas[EquipeNormalizada] ),
-                        F_paradas[EhNaoProgramada] = TRUE(),
-                        F_paradas[Início da parada] >= InicioTurno,
-                        F_paradas[Fim da parada] <= FimTurno
+                        TREATAS( { Ch }, F_paradas[ChaveEquipeDiaTurno] ),
+                        F_paradas[EhNaoProgramada] = TRUE()
                     )
             )
 		formatString: 0

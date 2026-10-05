@@ -248,6 +248,33 @@ table F_paradas
 
 		annotation SummarizationSetBy = Automatic
 
+	column DataOperacional
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 9c1d3e4f-5a6b-7c8d-9e0f-1a2b3c4d5e6f
+		summarizeBy: none
+		sourceColumn: DataOperacional
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Turno
+		dataType: string
+		lineageTag: ad2e4f5a-6b7c-8d9e-0f1a-2b3c4d5e6f7g
+		summarizeBy: none
+		sourceColumn: Turno
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChaveEquipeDiaTurno
+		dataType: string
+		lineageTag: be3f5a6b-7c8d-9e0f-1a2b-3c4d5e6f7g8h
+		summarizeBy: none
+		sourceColumn: ChaveEquipeDiaTurno
+
+		annotation SummarizationSetBy = Automatic
+
 	partition F_paradas = m
 		mode: import
 		queryGroup: 'Tabela Fato'
@@ -257,13 +284,19 @@ table F_paradas
 				    Fonte = SharePoint.Tables("https://engie.sharepoint.com/sites/CidadesInteligentes", [Implementation = "2.0", ViewMode = "All"]),
 				    TentaId = try Fonte{[Id = "e3b63167-8272-4618-83ad-f18b7c18dd60"]}[Items],
 				    #"Lista Paradas" = if TentaId[HasError] then Table.SelectRows(Fonte, each Text.Contains([Name], "paradas", Comparer.OrdinalIgnoreCase)){0}[Items] else TentaId[Value],
-				    #"Tempo de Parada" = Table.AddColumn(#"Lista Paradas", "Tempo de parada", each if [#"Início da parada"] = null or [#"Fim da parada"] = null then null else [#"Fim da parada"] - [#"Início da parada"]),
+				    #"Datas como datetime" = Table.TransformColumnTypes(#"Lista Paradas", {{"Início da parada", type datetime}, {"Fim da parada", type datetime}}),
+				    #"Tempo de Parada" = Table.AddColumn(#"Datas como datetime", "Tempo de parada", each if [#"Início da parada"] = null or [#"Fim da parada"] = null then null else [#"Fim da parada"] - [#"Início da parada"]),
 				    #"Tipo Alterado" = Table.TransformColumnTypes(#"Tempo de Parada", {{"Tempo de parada", type duration}}),
 				    #"Minutos de Parada" = Table.TransformColumns(#"Tipo Alterado", {{"Tempo de parada", Duration.TotalMinutes, type number}}),
 				    EquipeNormalizada = Table.AddColumn(#"Minutos de Parada", "EquipeNormalizada", each let e = if [Equipe] = null then "" else [Equipe], p = Text.PositionOf(e, " | ") in Text.Trim(if p >= 0 then Text.Start(e, p) else e), type text),
-				    EhNaoProgramada = Table.AddColumn(EquipeNormalizada, "EhNaoProgramada", each let t = if [#"Tipo da parada"] = null then "" else Text.Upper([#"Tipo da parada"]) in Text.Contains(t, "NÃO PROGRAMAD") or Text.Contains(t, "IMPREVIST") or Text.Contains(t, "CLIMA"), type logical)
-				in
-				    EhNaoProgramada
+				    EhNaoProgramada = Table.AddColumn(EquipeNormalizada, "EhNaoProgramada", each let t = if [#"Tipo da parada"] = null then "" else Text.Upper([#"Tipo da parada"]) in Text.Contains(t, "NÃO PROGRAMAD") or Text.Contains(t, "IMPREVIST") or Text.Contains(t, "CLIMA"), type logical),
+				    DataParada = Table.AddColumn(EhNaoProgramada, "DataOperacional", each let d = [#"Início da parada"] in if d = null then null else if Time.From(d) <= #time(6, 30, 0) then Date.AddDays(Date.From(d), -1) else Date.From(d), type date),
+				    MinutoDia = Table.AddColumn(DataParada, "MinutoDia", each let d = [#"Início da parada"] in if d = null then null else Time.Hour(d) * 60 + Time.Minute(d), type number),
+				    TurnoParada = Table.AddColumn(MinutoDia, "Turno", each let m = [MinutoDia] in if m = null then null else if m <= 360 then "T3" else if m <= 449 then "Fora" else if m <= 990 then "T1" else if m <= 1380 then "T2" else "T3", type text),
+				    ChaveParada = Table.AddColumn(TurnoParada, "ChaveEquipeDiaTurno", each [EquipeNormalizada] & "|" & Date.ToText([DataOperacional], "yyyy-MM-dd") & "|" & [Turno], type text),
+				    SemAuxiliares = Table.RemoveColumns(ChaveParada, {"MinutoDia"})
+				    in
+				    SemAuxiliares
 				```
 
 	annotation PBI_NavigationStepName = Navegação
