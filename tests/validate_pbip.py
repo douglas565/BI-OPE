@@ -152,6 +152,16 @@ for mname, expr in measures.items():
             fail("medida '%s': referencia %s[%s] sem coluna" % (mname, t, c))
 ok("%d medidas verificadas" % len(measures))
 
+# 6c) medidas DAX: nao usar apostrofo em volta do nome da tabela (COUNT('T'[Col]))
+for mname, expr in measures.items():
+    if re.search(r"'F_atendimentos'\[", expr):
+        fail("medida '%s': usa 'F_atendimentos'[...] com apostrofo desnecessario" % mname)
+
+# 6d) medidas obsoletas/limitadas nao devem permanecer no modelo
+for bad in ["Disponibilidade (Limitada) %", "Performance (Limitada) %", "Qualidade (Limitada) %", "OPE (Limitado) %"]:
+    if bad in measures:
+        fail("medida obsoleta '%s' ainda presente no modelo" % bad)
+
 # 6b) medidas DAX: refs de medida sem apostrofos e resolviveis
 allcols = set()
 for tcols in tables.values():

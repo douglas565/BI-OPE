@@ -466,7 +466,7 @@ table F_atendimentos
 		formatString: 0
 		lineageTag: 2d922fd5-1f5a-4431-aee1-8c5df9f6c2ae
 
-	measure 'Tempo Base Min' = SUMX( CALCULATETABLE( SUMMARIZE( F_atendimentos, F_atendimentos[ChaveEquipeDiaTurno], F_atendimentos[Turno] ), F_atendimentos[EhEquipeManutencao] = TRUE(), F_atendimentos[EhOperacional] = TRUE() ), MAXX( FILTER( D_turnos, D_turnos[TURNO] = F_atendimentos[Turno] ), D_turnos[META DISPONIBILIDADE MIN] ) )
+	measure 'Tempo Base Min' = SUMX( CALCULATETABLE( SUMMARIZE( F_atendimentos, F_atendimentos[ChaveEquipeDiaTurno], F_atendimentos[Turno] ), F_atendimentos[EhEquipeManutencao] = TRUE(), F_atendimentos[EhOperacional] = TRUE() ), COALESCE( LOOKUPVALUE( D_turnos[META DISPONIBILIDADE MIN], D_turnos[TURNO], F_atendimentos[Turno] ), 0 ) )
 		formatString: 0
 		lineageTag: 968ea990-f606-4b7b-a97f-10d9d2832c3e
 
@@ -481,11 +481,18 @@ table F_atendimentos
                 BaseTurnos,
                 VAR Ch = F_atendimentos[ChaveEquipeDiaTurno]
                 RETURN
-                    CALCULATE(
-                        SUM( F_paradas[Tempo de parada] ),
-                        REMOVEFILTERS( F_atendimentos ),
-                        TREATAS( { Ch }, F_paradas[ChaveEquipeDiaTurno] ),
-                        F_paradas[EhNaoProgramada] = TRUE()
+                    IF(
+                        NOT ISBLANK(Ch),
+                        COALESCE(
+                            CALCULATE(
+                                SUM( F_paradas[Tempo de parada] ),
+                                REMOVEFILTERS( F_atendimentos ),
+                                TREATAS( { Ch }, F_paradas[ChaveEquipeDiaTurno] ),
+                                F_paradas[EhNaoProgramada] = TRUE()
+                            ),
+                            0
+                        ),
+                        0
                     )
             )
 		formatString: 0
@@ -523,35 +530,19 @@ table F_atendimentos
 		formatString: 0.0%
 		lineageTag: 4c210590-084f-4116-9c72-26b943762966
 
-	measure 'Disponibilidade (Limitada) %' = IF([Disponibilidade %] > 1, 1, [Disponibilidade %])
-		formatString: 0.0%
-		lineageTag: 422c4550-20f4-4f49-af05-195de92a9c9e
-
-	measure 'Performance (Limitada) %' = IF([Performance %] > 1, 1, [Performance %])
-		formatString: 0.0%
-		lineageTag: 49920faa-b9b5-4a32-9c7a-d23a628128c2
-
-	measure 'Qualidade (Limitada) %' = IF([Qualidade %] > 1, 1, [Qualidade %])
-		formatString: 0.0%
-		lineageTag: 931b713a-0d26-4d21-9af7-2fc6f1967a07
-
-	measure 'OPE (Limitado) %' = [Disponibilidade (Limitada) %] * [Performance (Limitada) %] * [Qualidade (Limitada) %]
-		formatString: 0.0%
-		lineageTag: d0ec7edf-23aa-4af7-9ecb-d767c5d0f3b3
-
-	measure md_qualidade = DIVIDE( CALCULATE( COUNT('F_atendimentos'[ID_ATENDIMENTO_PS]), F_atendimentos[DESC_STATUS_ATENDIMENTO_PS] = "Atendido" ), COUNT(F_atendimentos[ID_ATENDIMENTO_PS]), 0 )
+	measure md_qualidade = DIVIDE( CALCULATE( COUNT(F_atendimentos[ID_ATENDIMENTO_PS]), F_atendimentos[DESC_STATUS_ATENDIMENTO_PS] = "Atendido" ), COUNT(F_atendimentos[ID_ATENDIMENTO_PS]), 0 )
 		formatString: 0.00%;-0.00%;0.00%
 		lineageTag: bb9725ae-9cff-4f85-b27c-3c80ec51401b
 
-	measure md_encontrado_normal = CALCULATE( COUNT('F_atendimentos'[ID_ATENDIMENTO_PS]), F_atendimentos[DESC_STATUS_ATENDIMENTO_PS] = "Encontrado Normal" )
+	measure md_encontrado_normal = CALCULATE( COUNT(F_atendimentos[ID_ATENDIMENTO_PS]), F_atendimentos[DESC_STATUS_ATENDIMENTO_PS] = "Encontrado Normal" )
 		formatString: 0
 		lineageTag: d3f6a91b-69e8-4aa8-b48e-95aae6ed7486
 
-	measure md_atendido = CALCULATE( COUNT('F_atendimentos'[ID_ATENDIMENTO_PS]), F_atendimentos[DESC_STATUS_ATENDIMENTO_PS] = "Atendido" )
+	measure md_atendido = CALCULATE( COUNT(F_atendimentos[ID_ATENDIMENTO_PS]), F_atendimentos[DESC_STATUS_ATENDIMENTO_PS] = "Atendido" )
 		formatString: 0
 		lineageTag: f5efd219-b304-4951-b2c1-95f459119806
 
-	measure md_impossibilidade = CALCULATE( COUNT('F_atendimentos'[ID_ATENDIMENTO_PS]), F_atendimentos[DESC_STATUS_ATENDIMENTO_PS] = "Impossibilidade" )
+	measure md_impossibilidade = CALCULATE( COUNT(F_atendimentos[ID_ATENDIMENTO_PS]), F_atendimentos[DESC_STATUS_ATENDIMENTO_PS] = "Impossibilidade" )
 		formatString: 0
 		lineageTag: a316cc88-554e-4f00-b796-501bf4d4a890
 

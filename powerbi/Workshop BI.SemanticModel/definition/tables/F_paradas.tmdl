@@ -284,16 +284,15 @@ table F_paradas
 				    Fonte = SharePoint.Tables("https://engie.sharepoint.com/sites/CidadesInteligentes", [Implementation = "2.0", ViewMode = "All"]),
 				    TentaId = try Fonte{[Id = "e3b63167-8272-4618-83ad-f18b7c18dd60"]}[Items],
 				    #"Lista Paradas" = if TentaId[HasError] then Table.SelectRows(Fonte, each Text.Contains([Name], "paradas", Comparer.OrdinalIgnoreCase)){0}[Items] else TentaId[Value],
-				    #"Datas como datetime" = Table.TransformColumnTypes(#"Lista Paradas", {{"Início da parada", type datetime}, {"Fim da parada", type datetime}}),
-				    #"Tempo de Parada" = Table.AddColumn(#"Datas como datetime", "Tempo de parada", each if [#"Início da parada"] = null or [#"Fim da parada"] = null then null else [#"Fim da parada"] - [#"Início da parada"]),
-				    #"Tipo Alterado" = Table.TransformColumnTypes(#"Tempo de Parada", {{"Tempo de parada", type duration}}),
-				    #"Minutos de Parada" = Table.TransformColumns(#"Tipo Alterado", {{"Tempo de parada", Duration.TotalMinutes, type number}}),
-				    EquipeNormalizada = Table.AddColumn(#"Minutos de Parada", "EquipeNormalizada", each let e = if [Equipe] = null then "" else [Equipe], p = Text.PositionOf(e, " | ") in Text.Trim(if p >= 0 then Text.Start(e, p) else e), type text),
-				    EhNaoProgramada = Table.AddColumn(EquipeNormalizada, "EhNaoProgramada", each let t = if [#"Tipo da parada"] = null then "" else Text.Upper([#"Tipo da parada"]) in Text.Contains(t, "NÃO PROGRAMAD") or Text.Contains(t, "IMPREVIST") or Text.Contains(t, "CLIMA"), type logical),
-				    DataParada = Table.AddColumn(EhNaoProgramada, "DataOperacional", each let d = [#"Início da parada"] in if d = null then null else if Time.From(d) <= #time(6, 30, 0) then Date.AddDays(Date.From(d), -1) else Date.From(d), type date),
-				    MinutoDia = Table.AddColumn(DataParada, "MinutoDia", each let d = [#"Início da parada"] in if d = null then null else Time.Hour(d) * 60 + Time.Minute(d), type number),
-				    TurnoParada = Table.AddColumn(MinutoDia, "Turno", each let m = [MinutoDia] in if m = null then null else if m <= 360 then "T3" else if m <= 449 then "Fora" else if m <= 990 then "T1" else if m <= 1380 then "T2" else "T3", type text),
-				    ChaveParada = Table.AddColumn(TurnoParada, "ChaveEquipeDiaTurno", each [EquipeNormalizada] & "|" & Date.ToText([DataOperacional], "yyyy-MM-dd") & "|" & [Turno], type text),
+				    // colunas de entrada: texto/datetime seguros (SharePoint pode devolver tipos mistos)
+				    #"Tipo Seguro" = Table.TransformColumnTypes(#"Lista Paradas", {{"Início da parada", type datetime}, {"Fim da parada", type datetime}, {"Equipe", type text}, {"Tipo da parada", type text}}),
+				    #"Tempo de Parada" = Table.AddColumn(#"Tipo Seguro", "Tempo de parada", each try Duration.TotalMinutes([#"Fim da parada"] - [#"Início da parada"]) otherwise null, type number),
+				    EquipeNormalizada = Table.AddColumn(#"Tempo de Parada", "EquipeNormalizada", each let e = if [Equipe] = null then "" else [Equipe], p = Text.PositionOf(e, " | ") in Text.Trim(if p >= 0 then Text.Start(e, p) else e), type text),
+				    EhNaoProgramada = Table.AddColumn(EquipeNormalizada, "EhNaoProgramada", each try Text.Contains(Text.Upper([#"Tipo da parada"] ?? ""), "NÃO PROGRAMAD") or Text.Contains(Text.Upper([#"Tipo da parada"] ?? ""), "IMPREVIST") or Text.Contains(Text.Upper([#"Tipo da parada"] ?? ""), "CLIMA") otherwise false, type logical),
+				    DataParada = Table.AddColumn(EhNaoProgramada, "DataOperacional", each try if [#"Início da parada"] = null then null else if Time.From([#"Início da parada"]) <= #time(6, 30, 0) then Date.AddDays(Date.From([#"Início da parada"]), -1) else Date.From([#"Início da parada"]) otherwise null, type date),
+				    MinutoDia = Table.AddColumn(DataParada, "MinutoDia", each try if [#"Início da parada"] = null then null else Time.Hour([#"Início da parada"]) * 60 + Time.Minute([#"Início da parada"]) otherwise null, type number),
+				    TurnoParada = Table.AddColumn(MinutoDia, "Turno", each try let m = [MinutoDia] in if m = null then null else if m <= 360 then "T3" else if m <= 449 then "Fora" else if m <= 990 then "T1" else if m <= 1380 then "T2" else "T3" otherwise null, type text),
+				    ChaveParada = Table.AddColumn(TurnoParada, "ChaveEquipeDiaTurno", each try [EquipeNormalizada] & "|" & Date.ToText([DataOperacional], "yyyy-MM-dd") & "|" & [Turno] otherwise null, type text),
 				    SemAuxiliares = Table.RemoveColumns(ChaveParada, {"MinutoDia"})
 				    in
 				    SemAuxiliares
