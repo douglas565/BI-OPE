@@ -389,6 +389,14 @@ table F_atendimentos
 
 		annotation SummarizationSetBy = Automatic
 
+	column EhEquipeManutencao
+		dataType: boolean
+		lineageTag: c75220c4-9eed-4235-a295-f35dd66a1530
+		summarizeBy: none
+		sourceColumn: EhEquipeManutencao
+
+		annotation SummarizationSetBy = Automatic
+
 	column EhEquipeCampo
 		dataType: boolean
 		lineageTag: 93b10578-fc90-415c-955e-2c737f434f92
@@ -438,11 +446,11 @@ table F_atendimentos
 
 		annotation SummarizationSetBy = Automatic
 
-	measure Realizados = CALCULATE( DISTINCTCOUNT(F_atendimentos[ID_ATENDIMENTO_PS]), F_atendimentos[EhEquipeCampo] = TRUE(), F_atendimentos[EhOperacional] = TRUE() )
+	measure Realizados = CALCULATE( DISTINCTCOUNT(F_atendimentos[ID_ATENDIMENTO_PS]), F_atendimentos[EhEquipeManutencao] = TRUE(), F_atendimentos[EhOperacional] = TRUE() )
 		formatString: 0
 		lineageTag: 36c50176-2620-47fa-a489-69be71bc6473
 
-	measure 'Equipe-dia' = COUNTROWS( CALCULATETABLE( SUMMARIZE( F_atendimentos, F_atendimentos[EquipeNormalizada], F_atendimentos[DataOperacional] ), F_atendimentos[EhEquipeCampo] = TRUE(), F_atendimentos[EhOperacional] = TRUE() ) )
+	measure 'Equipe-dia' = COUNTROWS( CALCULATETABLE( SUMMARIZE( F_atendimentos, F_atendimentos[EquipeNormalizada], F_atendimentos[DataOperacional] ), F_atendimentos[EhEquipeManutencao] = TRUE(), F_atendimentos[EhOperacional] = TRUE() ) )
 		formatString: 0
 		lineageTag: 857992cc-1b3b-4f70-b0d2-d424576f3b32
 
@@ -458,11 +466,49 @@ table F_atendimentos
 		formatString: 0
 		lineageTag: 2d922fd5-1f5a-4431-aee1-8c5df9f6c2ae
 
-	measure 'Tempo Base Min' = SUMX( CALCULATETABLE( SUMMARIZE( F_atendimentos, F_atendimentos[ChaveEquipeDiaTurno], F_atendimentos[Turno] ), F_atendimentos[EhEquipeCampo] = TRUE(), F_atendimentos[EhOperacional] = TRUE() ), MAXX( FILTER( D_turnos, D_turnos[TURNO] = F_atendimentos[Turno] ), D_turnos[META DISPONIBILIDADE MIN] ) )
+	measure 'Tempo Base Min' = SUMX( CALCULATETABLE( SUMMARIZE( F_atendimentos, F_atendimentos[ChaveEquipeDiaTurno], F_atendimentos[Turno] ), F_atendimentos[EhEquipeManutencao] = TRUE(), F_atendimentos[EhOperacional] = TRUE() ), MAXX( FILTER( D_turnos, D_turnos[TURNO] = F_atendimentos[Turno] ), D_turnos[META DISPONIBILIDADE MIN] ) )
 		formatString: 0
 		lineageTag: 968ea990-f606-4b7b-a97f-10d9d2832c3e
 
-	measure 'Paradas Min' = SUM( F_paradas[Tempo de parada] )
+	measure 'Paradas Min' =
+        VAR BaseTurnos =
+            SUMMARIZE(
+                CALCULATETABLE( F_atendimentos, F_atendimentos[EhEquipeManutencao] = TRUE(), F_atendimentos[EhOperacional] = TRUE() ),
+                F_atendimentos[EquipeNormalizada],
+                F_atendimentos[DataOperacional],
+                F_atendimentos[Turno]
+            )
+        RETURN
+            SUMX(
+                BaseTurnos,
+                VAR Eq = F_atendimentos[EquipeNormalizada]
+                VAR Dt = F_atendimentos[DataOperacional]
+                VAR Tn = F_atendimentos[Turno]
+                VAR InicioTurno =
+                    SWITCH(
+                        Tn,
+                        "T1", Dt + TIME(7, 30, 0),
+                        "T2", Dt + TIME(14, 0, 0),
+                        "T3", Dt + TIME(22, 0, 0) - 1,
+                        BLANK()
+                    )
+                VAR FimTurno =
+                    SWITCH(
+                        Tn,
+                        "T1", Dt + TIME(16, 30, 0),
+                        "T2", Dt + TIME(23, 0, 0),
+                        "T3", Dt + TIME(6, 0, 0),
+                        BLANK()
+                    )
+                RETURN
+                    CALCULATE(
+                        SUM( F_paradas[Tempo de parada] ),
+                        REMOVEFILTERS( F_atendimentos ),
+                        TREATAS( { Eq }, F_paradas[Equipe] ),
+                        F_paradas[Início da parada] >= InicioTurno,
+                        F_paradas[Fim da parada] <= FimTurno
+                    )
+            )
 		formatString: 0
 		lineageTag: f5159d7e-eb2f-4b60-b637-cd5d06086f1d
 
@@ -470,7 +516,7 @@ table F_atendimentos
 		formatString: 0
 		lineageTag: f2357eeb-9520-419b-9cef-225083a956e7
 
-	measure 'Disponibilidade %' = DIVIDE( [Tempo Disponível Min], [Tempo Base Min] )
+	measure 'Disponibilidade %' = MIN( 1, DIVIDE( [Tempo Disponível Min], [Tempo Base Min] ) )
 		formatString: 0.0%
 		lineageTag: 43dbf102-d25b-4733-8c4c-fcfcc85d386a
 
@@ -574,9 +620,10 @@ table F_atendimentos
 				    #"Tipo Alterado" = Table.TransformColumnTypes(#"Column1 Expandido", {{"DATA_HORA_INICIO_ATENDIMENTO", type datetime}, {"DATA_HORA_CONCLUSAO_ATENDIMENTO", type datetime}, {"DATA_INICIO_ATENDIMENTO", type date}, {"DATA_CONCLUSAO_ATENDIMENTO", type date}, {"HORA_INICIO", type time}, {"HORA_CONCLUSAO", type time}, {"DATA_ATENDIMENTO", type date}}),
 				    #"Início Válido" = Table.SelectRows(#"Tipo Alterado", each [DATA_HORA_INICIO_ATENDIMENTO] <> null),
 				    DataOperacional = Table.AddColumn(#"Início Válido", "DataOperacional", each if Time.From([DATA_HORA_INICIO_ATENDIMENTO]) <= #time(6, 30, 0) then Date.AddDays(Date.From([DATA_HORA_INICIO_ATENDIMENTO]), -1) else Date.From([DATA_HORA_INICIO_ATENDIMENTO]), type date),
-				    EquipeNormalizada = Table.AddColumn(DataOperacional, "EquipeNormalizada", each Text.Trim(Text.Replace(if [DESC_EQUIPE] = null then "" else [DESC_EQUIPE], " | ENGIE", "")), type text),
+				    EquipeNormalizada = Table.AddColumn(DataOperacional, "EquipeNormalizada", each let e = if [DESC_EQUIPE] = null then "" else [DESC_EQUIPE], p = Text.PositionOf(e, " | ") in Text.Trim(if p >= 0 then Text.Start(e, p) else e), type text),
 				    EhEquipeCampo = Table.AddColumn(EquipeNormalizada, "EhEquipeCampo", each not Text.Contains([EquipeNormalizada], "CCO", Combiner.OrdinalIgnoreCase), type logical),
-				    MinutoDia = Table.AddColumn(EhEquipeCampo, "MinutoDia", each Time.Hour([DATA_HORA_INICIO_ATENDIMENTO]) * 60 + Time.Minute([DATA_HORA_INICIO_ATENDIMENTO]), type number),
+            EhEquipeManutencao = Table.AddColumn(EhEquipeCampo, "EhEquipeManutencao", each not Text.Contains([EquipeNormalizada], "CCO", Combiner.OrdinalIgnoreCase) and [EquipeNormalizada] <> "", type logical),
+				    MinutoDia = Table.AddColumn(EhEquipeManutencao, "MinutoDia", each Time.Hour([DATA_HORA_INICIO_ATENDIMENTO]) * 60 + Time.Minute([DATA_HORA_INICIO_ATENDIMENTO]), type number),
 				    Turno = Table.AddColumn(MinutoDia, "Turno", each if [MinutoDia] <= 360 then "T3" else if [MinutoDia] <= 449 then "Fora" else if [MinutoDia] <= 990 then "T1" else if [MinutoDia] <= 1380 then "T2" else "T3", type text),
 				    EhOperacional = Table.AddColumn(Turno, "EhOperacional", each [Turno] <> "Fora", type logical),
 				    LimpaTexto = (t) => let u = Text.Upper(if t = null then "" else t) in Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(u, "Á", "A"), "À", "A"), "Â", "A"), "Ã", "A"), "Ä", "A"), "É", "E"), "Ê", "E"), "È", "E"), "Í", "I"), "Ì", "I"), "Ó", "O"), "Ô", "O"), "Õ", "O"), "Ö", "O"), "Ú", "U"), "Ü", "U"), "Ç", "C"), "Ï", "I"), "Î", "I"), "Ù", "U"),
