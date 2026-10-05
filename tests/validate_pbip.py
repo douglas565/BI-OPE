@@ -187,12 +187,24 @@ need = [
     "DataOperacional",
     "EquipeNormalizada",
     "EhEquipeCampo",
+    "EhEquipeManutencao",
     "EhOperacional",
     "EhImpossibilidade",
     "DuracaoExecucaoMin",
     "Turno",
     "ChaveEquipeDiaTurno",
 ]
+
+# 8b) colunas derivadas de F_paradas
+need_paradas = ["EquipeNormalizada", "EhNaoProgramada"]
+fpar = tables.get("F_paradas", set())
+fpar_text = open(DEF / "tables" / "F_paradas.tmdl", encoding="utf-8").read()
+for n in need_paradas:
+    if n not in fpar:
+        fail("F_paradas sem coluna '%s' declarada" % n)
+    if ('"%s"' % n) not in fpar_text:
+        fail("M de F_paradas nao produz '%s'" % n)
+ok("colunas derivadas de F_paradas declaradas e produzidas (2/2)")
 fcol = tables.get("F_atendimentos", set())
 fat = open(DEF / "tables" / "F_atendimentos.tmdl", encoding="utf-8").read()
 for n in need:
@@ -271,6 +283,17 @@ if ct:
         ok("tema '%s' registrado e presente" % ct.get("name"))
 if rp.get("filterConfig", {}).get("filters"):
     fail("report.json: filtro global residual (deve estar vazio)")
+
+# 9d) M: Text.Contains/Text.StartsWith devem usar Comparer, nunca Combiner
+m_misuse = []
+for tmdl_path in sorted((DEF / "tables").glob("*.tmdl")):
+    txt = tmdl_path.read_text(encoding="utf-8-sig")
+    for m in re.finditer(r'Text\.(Contains|StartsWith)\s*\([^)]*?Combiner\.\w+', txt, re.S):
+        m_misuse.append(tmdl_path.name)
+if m_misuse:
+    fail("M: Text.Contains/Text.StartsWith usando Combiner em vez de Comparer em: " + ", ".join(sorted(set(m_misuse))))
+else:
+    ok("M: Text.Contains/Text.StartsWith usam Comparer corretamente")
 
 # sumario
 for s in oks:
