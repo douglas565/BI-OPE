@@ -1,18 +1,25 @@
 {
   "name": "OPE ENGIE CWB",
   "dataColors": [
-    "#10205e",
     "#00AAFF",
-    "#009B8D",
+    "#10205e",
+    "#00C49F",
+    "#FFB300",
     "#7B52AB",
-    "#18a558",
-    "#e8a11c",
-    "#d9453d",
-    "#8a91a4"
+    "#D9453D",
+    "#18A558",
+    "#8A91A4",
+    "#2962FF",
+    "#FF6B6B",
+    "#00BFA5",
+    "#F48FB1"
   ],
   "background": "#f4f6fb",
   "foreground": "#1d2333",
   "tableAccent": "#10205e",
+  "good": "#18A558",
+  "neutral": "#E8A11C",
+  "bad": "#D9453D",
   "visualStyles": {
     "page": {
       "*": {
@@ -29,6 +36,48 @@
         "*": [
           {
             "fontFamily": "Segoe UI, Roboto, Arial, sans-serif"
+          }
+        ]
+      }
+    },
+    "columnChart": {
+      "*": {
+        "dataLabels": [
+          {
+            "show": true,
+            "fontSize": 10,
+            "color": { "solid": { "color": "#1d2333" } }
+          }
+        ]
+      }
+    },
+    "barChart": {
+      "*": {
+        "dataLabels": [
+          {
+            "show": true,
+            "fontSize": 10,
+            "color": { "solid": { "color": "#1d2333" } }
+          }
+        ]
+      }
+    },
+    "lineChart": {
+      "*": {
+        "dataLabels": [
+          {
+            "show": true,
+            "fontSize": 9,
+            "color": { "solid": { "color": "#1d2333" } }
+          }
+        ]
+      }
+    },
+    "gauge": {
+      "*": {
+        "dataLabels": [
+          {
+            "show": true
           }
         ]
       }
