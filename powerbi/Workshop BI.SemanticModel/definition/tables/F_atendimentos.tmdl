@@ -514,7 +514,18 @@ table F_atendimentos
 		formatString: 0
 		lineageTag: 5f3ebf1f-2984-42da-9d4f-863ced03eb91
 
-	measure 'Performance %' = DIVIDE( [Realizados], [Meta Produção] )
+	measure 'Performance %' =
+			DIVIDE(
+				SUMX(
+					CALCULATETABLE(
+						SUMMARIZE( F_atendimentos, F_atendimentos[ChaveEquipeDiaTurno], F_atendimentos[Turno] ),
+						F_atendimentos[EhEquipeManutencao] = TRUE(),
+						F_atendimentos[EhOperacional] = TRUE()
+					),
+					COALESCE( LOOKUPVALUE( D_turnos[META PRODUTIVIDADE MIN], D_turnos[TURNO], F_atendimentos[Turno] ), 23 ) * CALCULATE( [Realizados] )
+				),
+				[Tempo Disponível Min]
+			)
 		formatString: 0.0%
 		lineageTag: 79030dcb-8a03-42b2-927f-2a6ef8301c93
 
