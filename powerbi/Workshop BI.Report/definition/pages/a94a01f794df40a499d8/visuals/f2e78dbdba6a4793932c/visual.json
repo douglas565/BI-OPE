@@ -98,6 +98,20 @@
               },
               "queryRef": "F_atendimentos.Performance %",
               "nativeQueryRef": "Performance"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F_atendimentos"
+                    }
+                  },
+                  "Property": "Por que não 100%"
+                }
+              },
+              "queryRef": "F_atendimentos.Por que não 100%",
+              "nativeQueryRef": "Por que não 100%"
             }
           ]
         }

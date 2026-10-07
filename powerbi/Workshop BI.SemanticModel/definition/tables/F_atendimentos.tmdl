@@ -561,6 +561,60 @@ table F_atendimentos
 		formatString: 0
 		lineageTag: 521709fc-dc54-4378-a4c5-cfec0ccd4ac5
 
+	measure 'Por que não 100%' =
+			VAR Perf = [Performance %]
+			VAR R = [Realizados]
+			VAR TD = [Tempo Disponível Min]
+			VAR MetaT = [Meta Tempo Min]
+			VAR Chaves =
+				CALCULATETABLE(
+					VALUES( F_atendimentos[ChaveEquipeDiaTurno] ),
+					F_atendimentos[EhEquipeManutencao] = TRUE(),
+					F_atendimentos[EhOperacional] = TRUE(),
+					NOT ISBLANK( F_atendimentos[ChaveEquipeDiaTurno] )
+				)
+			VAR NPar =
+				CALCULATE(
+					COUNTROWS( F_paradas ),
+					REMOVEFILTERS( F_atendimentos ),
+					TREATAS( Chaves, F_paradas[ChaveEquipeDiaTurno] ),
+					F_paradas[EhNaoProgramada] = TRUE()
+				)
+			VAR Motivos =
+				CALCULATE(
+					CONCATENATEX( DISTINCT( F_paradas[Motivo] ), F_paradas[Motivo], ", " ),
+					REMOVEFILTERS( F_atendimentos ),
+					TREATAS( Chaves, F_paradas[ChaveEquipeDiaTurno] ),
+					F_paradas[EhNaoProgramada] = TRUE(),
+					NOT ISBLANK( F_paradas[Motivo] )
+				)
+			VAR Desloc =
+				COALESCE(
+					MAXX(
+						CALCULATETABLE( VALUES( F_atendimentos[Turno] ), F_atendimentos[EhEquipeManutencao] = TRUE(), F_atendimentos[EhOperacional] = TRUE() ),
+						LOOKUPVALUE( D_turnos[TEMPO DESLOCAMENTO (min)], D_turnos[TURNO], F_atendimentos[Turno] )
+					),
+					0
+				)
+			VAR Necessario = CEILING( ROUND( DIVIDE( TD, MetaT ), 4 ), 1 )
+			VAR Gap = MAX( 0, Necessario - R )
+			VAR PartePar =
+				IF(
+					NPar > 0,
+					"Paradas: " & FORMAT( DIVIDE( [Paradas Min], 1440 ), "h:mm" ) & " (" & NPar & "×" & IF( NOT ISBLANK( Motivos ), " · " & LEFT( Motivos, 40 ), "" ) & ")",
+					"Sem paradas não programadas"
+				)
+			VAR ParteDesl = "deslocamento " & FORMAT( Desloc, "h:mm" ) & " (padrão do turno)"
+			VAR ParteGap =
+				IF( Gap > 0, "faltaram " & Gap & " p/ 100%", "gap residual < 1 atendimento" )
+			RETURN
+				IF(
+					ISBLANK( R ),
+					BLANK(),
+					IF( Perf >= 1, "Meta atingida", PartePar & " · " & ParteDesl & " · " & ParteGap )
+				)
+		lineageTag: c73e2576-43d5-4217-8acf-1815cef51691
+
 	partition F_atendimentos = m
 		mode: import
 		queryGroup: 'Tabela Fato'
