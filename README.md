@@ -31,7 +31,7 @@ Recomendações: manter o repositório **privado** e rotacionar a senha periodic
 - Corrigido o crash de abertura no Desktop (`PFE_TM_RELATIONSHIP_END_COLUMN_INVALID`): `D_Calendario` virou tabela de **importação (M)** — relacionamentos não podem ser criados no cold load contra tabelas calculadas.
 - Corrigido o conflito de merge de annotations (`TMDL objects cannot be merged...`): `PBI_ResultType`/`PBI_NavigationStepName` agora indentadas sob as tabelas (antes em coluna 0, eram tratadas como anotações de banco de dados).
 - `cultures/pt-BR.tmdl` limpo (sem resíduos de auto date/time / "Variation").
-- Performance alinhada ao contrato vigente: **realizados ÷ meta de 15/equipe-dia**; métricas de tempo só como referência.
+- Performance alinhada ao contrato vigente: **realizados ÷ meta de 15/equipe-dia**; métricas de tempo só como referência. **(superado em 13/10/2026 — ver "Correções 2026-10-13".)**
 - Unidades do modelo em **minutos** (paradas e metas). Turno (T1/T2/T3) atribuído na consulta.
 
 ## Relatório (abas) — 2026-10-02
@@ -57,6 +57,13 @@ Criadas/atualizadas 5 abas no relatório:
 - **Disponibilidade limitada a 100%:** a fórmula da Bruna `(turno − intervalos − paradas não programadas) / (turno − intervalos)` é respeitada pela arquitetura atual (`Tempo Base Min` = turno − intervalos; `Tempo Disponível Min` = base − paradas). A medida `Disponibilidade %` usa `MIN(1, ...)` como proteção final.
 - **Paradas não programadas:** em `F_paradas` foram criadas as colunas `EquipeNormalizada` (remove sufixo `" | EMPRESA"`) e `EhNaoProgramada` (detecta `"NÃO PROGRAMAD"`, `"IMPREVIST"` ou `"CLIMA"`). A medida `Paradas Min` filtra `F_paradas[EhNaoProgramada] = TRUE()` e vincula pela equipe normalizada, garantindo que paradas programadas/testes não descontem disponibilidade.
 - **OPE distorcido em filtro de um dia:** com as correções acima, o denominador fica correto para cada equipe-dia e a base inclui apenas equipes de manutenção, eliminando os valores impossíveis (>100%) quando se seleciona uma data isolada.
+
+## Correções 2026-10-13 (Performance com válidos)
+
+- **Performance %:** numerador passa a usar `[Válidos]` (realizados − impossibilidades) em vez de `[Realizados]` — mesma leitura do painel v2: `Σ(meta de tempo do turno × válidos do turno) ÷ tempo disponível`; meta de tempo = META DISPONIBILIDADE ÷ META PRODUÇÃO (0:23:20 em T1/T2 = 5:50÷15; 0:19:20 em T3 = 4:50÷15). Fórmula conferida com a planilha PPP Curitiba (coluna PRODUTIVIDADE).
+- **"Por que não 100%":** o gap "faltaram N p/ 100%" passa a contar os válidos, coerente com a Performance.
+- **OPE %:** passa a refletir `Disponibilidade × Performance × Qualidade` com a Performance por válidos (a impossibilidade desconta na Performance e, de novo, na Qualidade — como no painel v2).
+- A leitura por quantidade (realizados ÷ meta de 15/equipe-dia) permanece apenas como referência, fora do OPE.
 
 ## Pendências
 - Rateio da meta entre turnos (hoje 15 por equipe-dia, independente do número de turnos); recorte de paradas à janela do turno; parâmetros para caminhos/credenciais.

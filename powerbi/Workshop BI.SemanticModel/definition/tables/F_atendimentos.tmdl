@@ -522,7 +522,7 @@ table F_atendimentos
 						F_atendimentos[EhEquipeManutencao] = TRUE(),
 						F_atendimentos[EhOperacional] = TRUE()
 					),
-					COALESCE( LOOKUPVALUE( D_turnos[META PRODUTIVIDADE MIN], D_turnos[TURNO], F_atendimentos[Turno] ), 23 ) * CALCULATE( [Realizados] )
+					COALESCE( LOOKUPVALUE( D_turnos[META PRODUTIVIDADE MIN], D_turnos[TURNO], F_atendimentos[Turno] ), 23 ) * CALCULATE( [Válidos] )
 				),
 				[Tempo Disponível Min]
 			)
@@ -597,7 +597,7 @@ table F_atendimentos
 					0
 				)
 			VAR Necessario = CEILING( ROUND( DIVIDE( TD, MetaT ), 4 ), 1 )
-			VAR Gap = MAX( 0, Necessario - R )
+			VAR Gap = MAX( 0, Necessario - [Válidos] )
 			VAR PartePar =
 				IF(
 					NPar > 0,
