@@ -607,11 +607,13 @@ table F_atendimentos
 			VAR ParteDesl = "deslocamento " & FORMAT( Desloc, "h:mm" ) & " (padrão do turno)"
 			VAR ParteGap =
 				IF( Gap > 0, "faltaram " & Gap & " p/ 100%", "gap residual < 1 atendimento" )
+			VAR ParteDisp =
+				IF( [Disponibilidade %] >= 1, "disponibilidade ok", "disponibilidade " & FORMAT( [Disponibilidade %], "0.0%" ) )
 			RETURN
 				IF(
 					ISBLANK( R ),
 					BLANK(),
-					IF( Perf >= 1, "Meta atingida", PartePar & " · " & ParteDesl & " · " & ParteGap )
+					IF( Perf >= 1, "Meta atingida", PartePar & " · " & ParteDesl & " · " & ParteDisp & " · " & ParteGap )
 				)
 		lineageTag: c73e2576-43d5-4217-8acf-1815cef51691
 
