@@ -515,17 +515,26 @@ table F_atendimentos
 		lineageTag: 5f3ebf1f-2984-42da-9d4f-863ced03eb91
 
 	measure 'Performance %' =
-			DIVIDE(
-				SUMX(
-					CALCULATETABLE(
-						SUMMARIZE( F_atendimentos, F_atendimentos[ChaveEquipeDiaTurno], F_atendimentos[Turno] ),
-						F_atendimentos[EhEquipeManutencao] = TRUE(),
-						F_atendimentos[EhOperacional] = TRUE()
-					),
-					COALESCE( LOOKUPVALUE( D_turnos[META PRODUTIVIDADE MIN], D_turnos[TURNO], F_atendimentos[Turno] ), 23 ) * CALCULATE( [Válidos] )
-				),
-				[Tempo Disponível Min]
-			)
+			VAR DatasSelecionadas = VALUES( D_Calendario[Date] )
+			VAR EquipesDia =
+				CALCULATETABLE(
+					SUMMARIZE( F_atendimentos, F_atendimentos[EquipeNormalizada], F_atendimentos[DataOperacional] ),
+					CROSSFILTER( D_Calendario[Date], F_atendimentos[DATA_ATENDIMENTO], NONE ),
+					TREATAS( DatasSelecionadas, F_atendimentos[DataOperacional] ),
+					REMOVEFILTERS( D_turnos ),
+					F_atendimentos[EhEquipeManutencao] = TRUE(),
+					F_atendimentos[EhOperacional] = TRUE()
+				)
+			VAR TempoMetaPorEquipeDia =
+				SUMX( EquipesDia, 350 / 15 * CALCULATE( [Válidos], REMOVEFILTERS( D_turnos ) ) )
+			VAR TempoDisponivelOperacional =
+				CALCULATE(
+					[Tempo Disponível Min],
+					CROSSFILTER( D_Calendario[Date], F_atendimentos[DATA_ATENDIMENTO], NONE ),
+					TREATAS( DatasSelecionadas, F_atendimentos[DataOperacional] ),
+					REMOVEFILTERS( D_turnos )
+				)
+			RETURN DIVIDE( TempoMetaPorEquipeDia, TempoDisponivelOperacional )
 		formatString: 0.0%
 		lineageTag: 79030dcb-8a03-42b2-927f-2a6ef8301c93
 
